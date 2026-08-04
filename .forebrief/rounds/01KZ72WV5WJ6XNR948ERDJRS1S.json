@@ -1,0 +1,66 @@
+{
+  "id": "01KZ72WV5WJ6XNR948ERDJRS1S",
+  "posted_at": "2026-08-04T19:09:36.830Z",
+  "cards": [
+    {
+      "id": "01KZ72WV5Z7Z53ZYJJTC10YVBM",
+      "round_id": "01KZ72WV5WJ6XNR948ERDJRS1S",
+      "posted_at": "2026-08-04T19:09:36.830Z",
+      "kind": "question",
+      "prompt": "Do the subtrees land before the essay publishes?",
+      "context": "Round 5 decided salt now and subtrees later. The repository is public since today, so a reader who follows the essay will find a design where a hidden run of words is protected by its salt and not yet by its shape. That is sound: the salt closes the hole on its own, and the subtree work is about disclosure size and defence in depth. But the essay will describe the attack, and a reader may go looking for the repair and find half of it.\n\nThe cost of doing it first is not small: proof_data and verify are inside the proven core, so the seventeen proofs are redone.",
+      "options": [
+        {
+          "key": "1",
+          "label": "Publish the essay now; the subtrees are a later cycle and the essay says so",
+          "consequences": [
+            {
+              "text": "The essay ships while the material is fresh, and saying openly that a decided improvement is not built yet is more honest than a repository that looks finished.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "A reader who checks the code sees a design the essay itself calls second-best, and has to trust the prose that the salt is sufficient.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Build the subtrees first, then publish",
+          "consequences": [
+            {
+              "text": "The repository a reader opens is the design the essay argues for, with nothing to explain away.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Seventeen proofs redone before a word is published, on a project whose own premortem named 'the tool becomes the project' as its most likely failure.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    }
+  ],
+  "title": "notary, round 6: what ships before the essay does"
+}
