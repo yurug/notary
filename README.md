@@ -92,11 +92,9 @@ they did not reveal.
 ```
 
 That second paragraph is not modesty. A timestamp establishes when a text
-existed; whether the text covers the reporter's finding is a human dispute, and
-this tool will not pretend to settle it.
-[`kb/domain/policy-language.md`](kb/domain/policy-language.md) carries a
-paragraph a bounty programme could adopt, and names the three sentences in it
-that the tool cannot keep.
+existed; whether the text covers the reporter's finding is a human dispute that
+a bounty programme's own rules decide, and this tool will not pretend to settle
+it.
 
 ## Build
 
