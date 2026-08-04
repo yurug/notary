@@ -125,6 +125,28 @@ shell can call it without adapters that quietly reimplement part of the core.
 **Acceptance:** a disclosure produced by the tool verifies, and one with a word
 moved does not.
 
+## Cycle 6 — The reporter's path *(done; it shipped no feature and found three defects)*
+
+The walk was to hand a disclosure and a root to someone with neither the tool
+nor the repository. Attempting it found, in this order:
+
+1. **There was no format specification.** The tags and the tree shape lived in
+   OCaml source and Rocq definitions. A reporter could not reimplement anything.
+   [`format.md`](format.md) is the repair.
+2. **There was nothing to hand over.** `disclose` printed to a terminal and
+   wrote no artifact. `--out` is the repair.
+3. **A missing flag crashed** with `Invalid_argument("option is None")` rather
+   than saying which flag. Found by running the tool with no arguments, which is
+   the first thing anyone does.
+
+Then the walk itself: `verifier/verify.py`, written from `format.md` alone in
+another language, agrees with the tool on a real disclosure and rejects a
+foreign root.
+
+**What it does not establish**, and the verifier's own header says so: the same
+person wrote the format and the second implementation, so their agreement tests
+whether the format is *precise*, not whether it is independently reproducible.
+
 ## Cycle 5 — The reporter's path
 
 **Ships:** nothing new. A walk: commit, disclose part, hand it to someone with
