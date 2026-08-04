@@ -78,6 +78,12 @@ Seventeen proofs, and nothing between the statements and the kernel.
 
 What the kernel cannot tell you, and what this list is for:
 
+0. **The int-to-nat conversion at the boundary** (`src/boundary.ml`). The core
+   indexes leaves with Rocq's unary `nat`; OCaml counts with `int`. Six lines
+   convert between them, and they are trusted. The alternative,
+   `Extract Inductive nat => "int"`, makes the same assumption invisible *and*
+   adds that no index exceeds 63 bits, so it is written out instead.
+
 1. **SHA-256**, by decision. Not proven, supplied by OCaml.
 2. **The injectivity idealisation** above, in its three parts. Real hashes offer
    computational collision resistance, not injectivity; the distance between the
