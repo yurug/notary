@@ -1,0 +1,89 @@
+{
+  "id": "01KZ5VF9K863Y6NDXGFJB93Z3T",
+  "posted_at": "2026-08-04T07:40:38.379Z",
+  "cards": [
+    {
+      "id": "01KZ5VF9KCJMBFCCME0BYWDQBJ",
+      "round_id": null,
+      "posted_at": "2026-08-04T07:40:38.379Z",
+      "kind": "question",
+      "prompt": "Can two findings of different lengths share a root?",
+      "context": "Cycle 3d proved the fold injective at equal length, so soundness now rests on one remaining question: whether a sequence of n leaves and one of m leaves, n different from m, can fold to the same root. Hand analysis says no in each case examined, and by two different mechanisms. One leaf against two or more is blocked by hleaf_hnode_disjoint, since one root is a leaf hash and the other a node hash. Three leaves against four is blocked by distinctness instead: equality would force the fourth leaf to equal the third. The general argument needs an induction on tree depth, and depths cover ranges of lengths, which is why it is not a corollary of what is already proven. This card decides whether to prove it or to make it unnecessary.",
+      "options": [
+        {
+          "key": "1",
+          "label": "Bind the length into the root, so the question cannot arise",
+          "consequences": [
+            {
+              "text": "The root commits to the leaf count as well as the leaves, so two different lengths give different roots by construction and the remaining obligation disappears rather than being discharged. Soundness closes with what is already proven.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "It changes the published format, so every root already computed under the old construction is incompatible. Today that is one root on a testnet; later it would be a migration nobody can perform, since a published commitment cannot be recomputed.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "irreversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Prove it, by induction on depth",
+          "consequences": [
+            {
+              "text": "The construction stays exactly as specified, and the theorem covers it with no extra machinery in the format. What ships is what was designed.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "It is the hardest proof in the development and its size is unknown, on a project whose point is to illustrate a loop rather than to do proof engineering. It could eat several cycles and the essay would be about Rocq.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "Leave it an assumption, named in the trusted base",
+          "consequences": [
+            {
+              "text": "Costs nothing now, and the trusted base already has a mechanism for exactly this: make assumptions prints it, so the claim degrades honestly rather than silently.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The assumption is not a hash property or a tool, it is a statement about our own construction that we could settle. A trusted base that contains our own unfinished work is a different thing from one that contains SHA-256, and a reader will notice.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    }
+  ]
+}

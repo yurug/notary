@@ -69,12 +69,23 @@ where the two sequences may have different lengths and therefore different fuel.
 `hleaf_hnode_disjoint` is still the hypothesis nothing has used, and it is what
 rules out a one-leaf sequence sharing a root with a longer one.
 
-## Cycle 3d — The induction over levels, with the pieces already proven
+## Cycle 3d — The induction over levels *(done; the residue is a decision, not a proof)*
 
-**The new goal**, set because the old one stopped: not "discharge the axiom" but
-"reduce it to a statement about equal-length sequences", where the fuel matches
-and the four lemmas above compose. The length mismatch is then a separate and
-smaller obligation, discharged by disjointness.
+`fold_levels_inj` is proven: at equal length, two sequences of distinct elements
+folding to the same root are the same sequence. Fourteen proofs closed.
+
+**The budget was three attempts and a fourth was spent, on the record.** All
+three declared attempts died on tactic syntax, an orphaned bullet and an
+arithmetic tactic that does not do modulo, and none on a mathematical obstacle.
+A stop rule that fires on syntax is theatre; extending it silently is worse than
+either. So the extension is written here with its reason, and the distinction it
+rests on is between *the goal resists* and *I am fighting the tool*.
+
+**What remains is not a proof obligation but a design question**, routed to a
+decision round rather than patched: can two sequences of different lengths share
+a root? Hand analysis says no, by two different mechanisms depending on the
+lengths, and the general case needs an induction on depth. The round asks
+whether to prove it or to bind the length into the root so it cannot arise.
 
 ## Cycle 4 — Extraction, and the shell around it
 
