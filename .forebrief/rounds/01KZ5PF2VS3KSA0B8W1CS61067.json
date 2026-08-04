@@ -1,0 +1,315 @@
+{
+  "id": "01KZ5PF2VS3KSA0B8W1CS61067",
+  "posted_at": "2026-08-04T06:13:08.601Z",
+  "cards": [
+    {
+      "id": "01KZ5PF2VS29GY9JDD1FMATK55",
+      "round_id": "01KZ5PF2VS3KSA0B8W1CS61067",
+      "posted_at": "2026-08-04T06:13:08.601Z",
+      "kind": "question",
+      "prompt": "What exactly does the Rocq module prove?",
+      "context": "The core takes a finding, splits it into leaves, builds a Merkle tree, and lets a redacted version be checked against the root. The proof can aim at three different targets, and they are not the same theorem. This decides what a reader is told the proof buys, and it is the sentence the essay has to be able to print.",
+      "options": [
+        {
+          "key": "1",
+          "label": "Verification accepts exactly the genuine redactions",
+          "consequences": [
+            {
+              "text": "The theorem is a biconditional: verify accepts a disclosure if and only if it is a projection of the committed sequence, under the stated hash property. Both directions matter: accepting too much lets a claim be forged, rejecting too much leaves an honest team unable to defend a true claim.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The reverse direction needs an injectivity assumption on the hash, so the trusted base gains a stated property rather than just a function.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "A genuine redaction always verifies (soundness of the prover only)",
+          "consequences": [
+            {
+              "text": "The easier half, and it needs no assumption about the hash at all: the proof is pure tree arithmetic.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "It says nothing about forgery, which is the half a reporter cares about, so the essay would have to explain why the interesting direction was left out.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "Both directions, plus that a redaction never reveals a hidden word",
+          "consequences": [
+            {
+              "text": "It covers the disclosure property too, so the proof speaks about confidentiality rather than only about compatibility.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Stating what 'reveals' means formally is a research-shaped problem, and it would make the core large enough to stop being the small critical part the architecture is built around.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "01KZ5PF2VT5JKH8MC5MVY62ZM7",
+      "round_id": "01KZ5PF2VS3KSA0B8W1CS61067",
+      "posted_at": "2026-08-04T06:13:08.601Z",
+      "kind": "question",
+      "prompt": "How does the abstract hash enter the Rocq development?",
+      "context": "SHA-256 is not proven; it is in the trusted base by decision. The Rocq side still needs to say something about the hash, or no theorem about collisions is possible. Where that assumption is written decides how honest the trusted-base report can be.",
+      "options": [
+        {
+          "key": "1",
+          "label": "A module parameter with an injectivity hypothesis",
+          "consequences": [
+            {
+              "text": "The theorem reads: for any hash function that is injective on the encodings we use, verification is exact. The assumption is one line, in the statement, impossible to miss.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Injectivity is strictly stronger than what SHA-256 offers, which is computational collision resistance, so the report must say the model is idealised and where.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "An axiom about collision freedom",
+          "consequences": [
+            {
+              "text": "Closest to what cryptographers actually assume, and it names the real property rather than an idealisation.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "An axiom is invisible in the theorem's statement; a reader has to go looking. The trusted-base report has to surface it, which makes the report load-bearing.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "Prove over an abstract type with no hypothesis, and state the gap in prose",
+          "consequences": [
+            {
+              "text": "The Rocq development stays minimal and assumption-free, which is the strongest possible claim about what was actually proven.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The interesting direction of the theorem becomes unprovable, so this collapses into option 2 of the previous card.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "01KZ5PF2VTG0AMTYQCPXJVN92Z",
+      "round_id": "01KZ5PF2VS3KSA0B8W1CS61067",
+      "posted_at": "2026-08-04T06:13:08.601Z",
+      "kind": "question",
+      "prompt": "How does the proven core reach OCaml?",
+      "context": "The core is written and proven in Rocq; the product is an OCaml program. Whatever crosses that gap is in the trusted base, and the essay has to name it. This is the decision the certified architecture stands or falls on, because a proof that does not reach the running program is a proof about a different program.",
+      "options": [
+        {
+          "key": "1",
+          "label": "Rocq extraction to OCaml, and the extractor is in the trusted base",
+          "consequences": [
+            {
+              "text": "Standard, small, and the assumption is one named tool. The essay says: we trust Rocq's extractor, and here is what that means.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Extracted code is not idiomatic and its performance is whatever it is, which for a Merkle tree over a few hundred words is a non-issue and should be said rather than hidden.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Hand-written OCaml, differentially tested against the extracted reference",
+          "consequences": [
+            {
+              "text": "Idiomatic, fast code, with the extracted version as an oracle that thousands of adversarial inputs check it against.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The running program is no longer the proven program: the trusted base gains the differential test's coverage, which is a much weaker claim than extraction and has to be stated as such.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "Extraction, and the verifier a reporter runs is a separate tiny reimplementation",
+          "consequences": [
+            {
+              "text": "The reporter checks with code that depends on nothing of ours, which is the independence the product needs, and disagreement between the two is itself a signal.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Two implementations of one specification, and the proven one is not the one the reporter runs, which is worth saying plainly.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "01KZ5PF2VV6K9J6BFF0SB26Q8Q",
+      "round_id": "01KZ5PF2VS3KSA0B8W1CS61067",
+      "posted_at": "2026-08-04T06:13:08.601Z",
+      "kind": "question",
+      "prompt": "What is deliberately outside the proven core?",
+      "context": "The architecture's whole claim is that the system's validity depends on a small part, and the rest can be ordinary code with ordinary tests. That claim is only true if the line is drawn somewhere defensible. This card draws it.",
+      "options": [
+        {
+          "key": "1",
+          "label": "Everything but the tree: splitting, hashing, IO, chain, CLI, redaction UX",
+          "consequences": [
+            {
+              "text": "The proven part is the smallest thing that carries the claim, which makes the architecture's thesis legible: a reader sees a tiny proven island and a large tested continent.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The split into leaves is outside, so a bug there means the proof is about a different sequence than the one the user wrote. That has to be named as a real exposure.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "The tree and the leaf splitting, since the split defines what is committed",
+          "consequences": [
+            {
+              "text": "Closes the exposure above: what the user typed and what the tree commits to are provably the same sequence.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "String handling in Rocq is genuinely unpleasant, and the core stops being small, which weakens the very architecture the essay is about.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    }
+  ],
+  "title": "notary, round 1: the certified boundary"
+}

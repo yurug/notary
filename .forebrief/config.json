@@ -1,0 +1,4 @@
+{
+  "title": "notary decisions",
+  "foldIn": { "adrDir": "kb/decisions", "roundsDir": "kb", "template": "default", "idFormat": "ADR-%03d" }
+}
