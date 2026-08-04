@@ -21,6 +21,7 @@ depend on it.
 |---|---|---|
 | **The core** | the Merkle tree over an abstract hash: build, prove a disclosure, verify one | proven in Rocq, extracted to OCaml |
 | **The shell** | word splitting, SHA-256, files, the command line, the redaction view | tested |
+| **The chain** | a separate program: a key, a signer, a network client, a contract | tested, and separate on purpose |
 | **The base** | what neither holds: the extractor, the hash implementation, the runtime | **named**, not held |
 
 The line is drawn in round 1, card 4: everything but the tree is outside. That
@@ -95,6 +96,12 @@ What the kernel cannot tell you, and what this list is for:
    the running program.
 4. **The leaf splitting**, outside the proof by card 4.
 5. The OCaml runtime and everything under it.
+6. **The chain program**, all of it: the key, the signer, the client and the
+   ledger contract. It is a **separate binary** by round 4, on the engineer's
+   reasoning that each binary should have a well-defined scope. What makes that
+   acceptable rather than convenient: a mistake there is loud. The root it
+   publishes either equals the one the proven core computed or it does not, and
+   `notary-chain lookup` answers that with no key and no trust in the publisher.
 6. **`hcount`**, the fifth hash parameter and its injectivity, added in cycle 3e
    to bind the leaf count into the root.
 

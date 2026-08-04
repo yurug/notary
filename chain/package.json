@@ -1,0 +1,13 @@
+{
+  "name": "notary-chain",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "notary-chain": "publish.mjs"
+  },
+  "dependencies": {
+    "@taquito/signer": "^23.0.0",
+    "@taquito/taquito": "^23.0.0",
+    "bn.js": "^5.2.5"
+  }
+}

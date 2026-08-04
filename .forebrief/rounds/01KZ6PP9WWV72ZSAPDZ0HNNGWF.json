@@ -1,0 +1,90 @@
+{
+  "id": "01KZ6PP9WWV72ZSAPDZ0HNNGWF",
+  "posted_at": "2026-08-04T15:36:19.615Z",
+  "cards": [
+    {
+      "id": "01KZ6PP9X0885W42GA7FXA15X4",
+      "round_id": "01KZ6PP9WWV72ZSAPDZ0HNNGWF",
+      "posted_at": "2026-08-04T15:36:19.615Z",
+      "kind": "question",
+      "prompt": "Does the notary publish the root itself, or stop at computing it?",
+      "context": "The shell has no chain code at all today: commit prints a root and says nothing about where it goes. Adding publication means a signer, a key, a network client and a contract, all of which land in the trusted base and none of which any theorem touches. Not adding it means the team publishes by whatever means they already have, and the tool stays a local computation over a document.\n\nA request, and it is the point of this card as much as the answer: please record WHY, not only which. Six decisions in this project carry no rationale at all, and the essay will report that ratio whatever it is. A decision log that preserves what was chosen and loses why is the failure mode this mechanism exists to prevent, and right now it is the mechanism's own record that shows it.",
+      "options": [
+        {
+          "key": "1",
+          "label": "The tool does not publish; it prints a root and the command to publish it",
+          "consequences": [
+            {
+              "text": "The trusted base does not grow: no key handling, no signer, no network client, no contract of ours. The tool stays a pure local computation over a document, which is the shape the architecture argues for.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "A team has to know how to put 32 bytes on a chain, which most security teams do not, so the tool is unusable by its stated audience without a second tool.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "The tool publishes, through a client and a contract we ship",
+          "consequences": [
+            {
+              "text": "One command from a finding to a timestamped commitment, usable by a security team with no chain experience, which is the audience the brief named.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "A signer, key material, a network client and a contract enter the trusted base, and none of them is covered by either theorem. The essay would have to say the proven part shrank relative to the whole.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "The tool publishes, but the chain layer is a separate program",
+          "consequences": [
+            {
+              "text": "The audience is served and the boundary stays legible: one binary is the proven computation, another is the thing that talks to a network, and a reader can see which is which.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Two programs, two builds, and a handoff format between them that is one more thing to specify and get wrong.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "3"
+    }
+  ],
+  "title": "notary, round 4: does the tool publish?"
+}
