@@ -1,0 +1,17 @@
+{
+  "pins": [
+    {
+      "role": "kb",
+      "path": "kb",
+      "kind": "tree"
+    }
+  ],
+  "outputs": {
+    "diff": "git status --porcelain && git diff --stat"
+  },
+  "denyList": "tools/deny-list.txt",
+  "capture": {
+    "dir": "captures",
+    "pattern": "<takeId>-*"
+  }
+}
