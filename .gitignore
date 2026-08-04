@@ -1,0 +1,6 @@
+theories/*.vo
+theories/*.vok
+theories/*.vos
+theories/*.glob
+theories/.*.aux
+_build/
