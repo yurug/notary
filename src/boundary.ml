@@ -12,11 +12,11 @@
  * additionally assume that no index exceeds 63 bits. Written here, it can be
  * read by whoever audits the trusted base. *)
 
-let rec nat_of_int (n : int) : Datatypes.nat =
-  if n <= 0 then Datatypes.O else Datatypes.S (nat_of_int (n - 1))
+let rec nat_of_int (n : int) : Extracted.Datatypes.nat =
+  if n <= 0 then Extracted.Datatypes.O else Extracted.Datatypes.S (nat_of_int (n - 1))
 
-let rec int_of_nat (n : Datatypes.nat) : int =
-  match n with Datatypes.O -> 0 | Datatypes.S m -> 1 + int_of_nat m
+let rec int_of_nat (n : Extracted.Datatypes.nat) : int =
+  match n with Extracted.Datatypes.O -> 0 | Extracted.Datatypes.S m -> 1 + int_of_nat m
 
 (* Splitting a finding into words happens outside the proof, by decision. A bug
  * here means the theorem is about a different sequence than the one the

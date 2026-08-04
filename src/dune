@@ -1,0 +1,3 @@
+(executable
+ (name notary)
+ (libraries digestif extracted))

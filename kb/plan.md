@@ -98,6 +98,22 @@ a root? Hand analysis says no, by two different mechanisms depending on the
 lengths, and the general case needs an induction on depth. The round asks
 whether to prove it or to bind the length into the root so it cannot arise.
 
+## Cycle 5 — The shell *(done)*
+
+`dune build` produces a working tool. A finding commits to a real SHA-256 root,
+`disclose` renders the recipient's view with gap lengths and stops short of
+judging them, and the **extracted, proven** verifier accepts the disclosure.
+
+The acceptance criterion said a disclosure with a word moved must not verify.
+That is no longer a test: it is `verify_is_sound`, closed under the global
+context. The proof replaced the check rather than joining it.
+
+Two frictions worth keeping. Extraction ships its own `List`, `Datatypes` and
+`PeanoNat`, which shadow the standard library, so the generated code lives in
+its own wrapped library with warnings off: nobody should be improving generated
+code. And `digestif`'s `feed_string` carries optional arguments, so it cannot be
+passed to `fold_left` without an eta-expansion.
+
 ## Cycle 4 — Extraction, and the shell around it
 
 **Ships:** extraction to OCaml, plus enough shell to commit a finding and verify
