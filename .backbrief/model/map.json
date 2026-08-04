@@ -1,0 +1,191 @@
+{
+  "nodes": [
+    {
+      "answer": "One module: the tree and verification. Word splitting, SHA-256, files and the command line are outside, tested rather than proven.",
+      "citations": [
+        {
+          "anchor": "where-the-certified-boundary-falls",
+          "kind": "kb",
+          "path": "kb/architecture.md"
+        }
+      ],
+      "id": "boundary",
+      "level": "system",
+      "question": "What does the proof actually cover?",
+      "requires": [],
+      "type": "concept"
+    },
+    {
+      "answer": "The single biconditional was unsatisfiable: it forced the verifier to ignore its proof. Soundness is the verifier's, completeness the pair's.",
+      "citations": [
+        {
+          "contentHash": "c0a36c6d8441a9955cc530bb3fe55dea6539d584460d275a2546da0da7735bb6",
+          "endLine": 170,
+          "kind": "code",
+          "path": "theories/Merkle.v",
+          "rev": "worktree",
+          "startLine": 157
+        }
+      ],
+      "id": "two-obligations",
+      "level": "subsystem",
+      "question": "Why two theorems rather than one biconditional?",
+      "requires": [
+        "boundary"
+      ],
+      "type": "property"
+    },
+    {
+      "answer": "The prover. Completeness says an honest disclosure has some accepted proof, and the thing producing it had no name in the design.",
+      "citations": [
+        {
+          "contentHash": "b3b6d80a27b6f81296054bbaf395615554ffc114722771e2f76297bb2595d215",
+          "endLine": 192,
+          "kind": "code",
+          "path": "theories/Merkle.v",
+          "rev": "worktree",
+          "startLine": 186
+        }
+      ],
+      "id": "named-prover",
+      "level": "subsystem",
+      "question": "Which program did the biconditional hide?",
+      "requires": [
+        "two-obligations"
+      ],
+      "type": "concept"
+    },
+    {
+      "answer": "Two findings of different lengths could otherwise share a root. Binding the count makes that question unaskable instead of answerable.",
+      "citations": [
+        {
+          "contentHash": "40cd6224965720feba3c88afb1666d001c0917549256ecca55c31a15448680c5",
+          "endLine": 50,
+          "kind": "code",
+          "path": "theories/Merkle.v",
+          "rev": "worktree",
+          "startLine": 44
+        }
+      ],
+      "id": "count-in-root",
+      "level": "mechanism",
+      "question": "Why does the root hash the leaf count?",
+      "requires": [
+        "two-obligations"
+      ],
+      "type": "mechanism"
+    },
+    {
+      "answer": "By changing the construction, not by proving harder. The proof attempt is what identified which case had to disappear.",
+      "citations": [
+        {
+          "anchor": "cycle-3e-bind-the-length-done-soundness-closed-no-axioms",
+          "kind": "kb",
+          "path": "kb/plan.md"
+        }
+      ],
+      "id": "removed-not-handled",
+      "level": "system",
+      "question": "How was the last obligation discharged?",
+      "requires": [
+        "count-in-root"
+      ],
+      "type": "rationale"
+    },
+    {
+      "answer": "Once lengths match, pairing is injective without them. Four hard-won lemmas left the critical path and became documentation.",
+      "citations": [
+        {
+          "contentHash": "caf5d4b432d3aa57ad75321304b85fcd94d3a711762218b42cfc3f5510825f0a",
+          "endLine": 447,
+          "kind": "code",
+          "path": "theories/Merkle.v",
+          "rev": "worktree",
+          "startLine": 431
+        }
+      ],
+      "id": "nodup-demoted",
+      "level": "code",
+      "question": "What happened to the distinctness lemmas?",
+      "requires": [
+        "count-in-root"
+      ],
+      "type": "quirk"
+    },
+    {
+      "answer": "The kernel. make assumptions asks it; a hand-kept list drifts the moment a proof changes.",
+      "citations": [
+        {
+          "anchor": "the-trusted-base-asked-of-the-kernel",
+          "kind": "kb",
+          "path": "kb/architecture.md"
+        }
+      ],
+      "id": "kernel-says",
+      "level": "subsystem",
+      "question": "Who maintains the trusted base list?",
+      "requires": [
+        "boundary"
+      ],
+      "type": "mechanism"
+    },
+    {
+      "answer": "Six trusted lines converting int to unary nat, written out rather than hidden in an extraction directive that would also assume 63 bits.",
+      "citations": [
+        {
+          "contentHash": "83deccee125f01a580093c2a5ad3465e1884ae31acdfe05cfe46374070adcfc5",
+          "endLine": 17,
+          "kind": "code",
+          "path": "src/boundary.ml",
+          "rev": "worktree",
+          "startLine": 15
+        }
+      ],
+      "id": "six-lines",
+      "level": "code",
+      "question": "What actually crosses into OCaml?",
+      "requires": [
+        "boundary"
+      ],
+      "type": "boundary"
+    },
+    {
+      "answer": "Word splitting is outside the proof, so a bug there means the theorem is about a different sequence than the one you wrote.",
+      "citations": [
+        {
+          "contentHash": "26a61920bde50bdcac3c338d724e88bca597f2a287170efbbf51e27009c5ada5",
+          "endLine": 29,
+          "kind": "code",
+          "path": "src/boundary.ml",
+          "rev": "worktree",
+          "startLine": 24
+        }
+      ],
+      "id": "splitting-outside",
+      "level": "subsystem",
+      "question": "What is the exposure the boundary leaves?",
+      "requires": [
+        "six-lines"
+      ],
+      "type": "boundary"
+    },
+    {
+      "answer": "A document and Python. The format is written down so verification can be reimplemented without any of our code.",
+      "citations": [
+        {
+          "anchor": "verifying",
+          "kind": "kb",
+          "path": "kb/format.md"
+        }
+      ],
+      "id": "stranger-checks",
+      "level": "system",
+      "question": "What does a reporter need to check a claim?",
+      "requires": [
+        "count-in-root"
+      ],
+      "type": "property"
+    }
+  ],
+  "version": 1
+}
