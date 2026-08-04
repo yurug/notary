@@ -73,9 +73,8 @@ later has been misled by omission.
 list drifts the moment a proof changes; this one cannot, because it is the
 kernel's answer.
 
-Today it says: completeness is **closed under the global context**, and
-soundness rests on exactly one axiom, `fold_determines_leaves`, the unproven
-claim that two leaf sequences folding to the same root are the same sequence.
+**Today it says both theorems are closed under the global context.** No axioms.
+Seventeen proofs, and nothing between the statements and the kernel.
 
 What the kernel cannot tell you, and what this list is for:
 
@@ -87,16 +86,23 @@ What the kernel cannot tell you, and what this list is for:
    the running program.
 4. **The leaf splitting**, outside the proof by card 4.
 5. The OCaml runtime and everything under it.
-6. **`fold_determines_leaves`**, still an assumption after cycle 3c stopped on
-   its declared budget. It is the piece that makes forgery impossible. Four
-   supporting lemmas around it are proven, so what remains is the induction over
-   levels rather than the whole claim.
+6. **`hcount`**, the fifth hash parameter and its injectivity, added in cycle 3e
+   to bind the leaf count into the root.
 
-Worth recording beside it: the classic duplication attack, where a sequence and
-the same sequence with its last element repeated share a root, is blocked here
-**by construction** rather than by that lemma. Leaves carry their index, so no
-two leaves are ever equal, so a last element can never be a duplicate of its
-neighbour.
+The last obligation was discharged by changing the construction rather than by
+proving harder. Two sequences of different lengths sharing a root was the piece
+that resisted; binding the count makes the question unaskable. The cost landed
+on the format and not on the proof: **a root computed without the count cannot
+be recomputed with it**, which is why the decision was marked irreversible.
+
+Two things worth recording beside it. The classic duplication attack, where a
+sequence and the same sequence with its last element repeated share a root, is
+blocked here **by construction**: leaves carry their index, so no two leaves are
+ever equal. And once the length is bound, pairing is injective **with no
+distinctness hypothesis at all**, because the only case distinctness ever ruled
+out was a singleton against a longer list. `leaves_of_nodup` stayed proven and
+stopped being load-bearing, which is a better place for it than the critical
+path.
 
 A list that grows is not a failure; a list nobody wrote is.
 
