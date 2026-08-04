@@ -48,14 +48,33 @@ needed one, and it is a fourth *parameter* rather than a hash property:
 `hleaf_inj` earned its place exactly where predicted, reading a word back out of
 a leaf.
 
-## Cycle 3c — Discharge `fold_determines_leaves`
+## Cycle 3c — Discharge `fold_determines_leaves` *(stopped on budget, goal not met)*
 
-**Ships:** the axiom, proven, and `make assumptions` reporting both theorems
-closed under the global context.
+Four attempts were declared in the take's goal before the first one ran. All
+four succeeded at what they attempted and **the axiom is still an axiom.** The
+stop rule fired on the count rather than on a feeling that the end was near,
+which is the only version of a stop rule that means anything.
 
-**The unknown:** whether it is true as stated. It quantifies over sequences of
-different lengths, and the argument that it holds runs through
-`hleaf_hnode_disjoint`, which is exactly the hypothesis nothing has used yet.
+What the four bought, all proven and none of it wasted:
+
+- `leaves_of_nodup`: no two leaves are ever equal, because they carry their
+  index. This is what blocks the classic duplication attack.
+- `pair_up_in`: a node in a level came from two elements of the level below.
+- `pair_up_nodup`: distinctness survives a level.
+- `pair_up_inj`: a level determines the level below it, **given distinctness**.
+  Without it the lemma is false: `pair_up [x]` and `pair_up [x; x]` agree.
+
+Twelve proofs closed. The remaining step is the induction over levels itself,
+where the two sequences may have different lengths and therefore different fuel.
+`hleaf_hnode_disjoint` is still the hypothesis nothing has used, and it is what
+rules out a one-leaf sequence sharing a root with a longer one.
+
+## Cycle 3d — The induction over levels, with the pieces already proven
+
+**The new goal**, set because the old one stopped: not "discharge the axiom" but
+"reduce it to a statement about equal-length sequences", where the fuel matches
+and the four lemmas above compose. The length mismatch is then a separate and
+smaller obligation, discharged by disjointness.
 
 ## Cycle 4 — Extraction, and the shell around it
 
