@@ -21,8 +21,13 @@ import struct
 import sys
 
 
-def leaf(i: int, word: str) -> bytes:
-    return hashlib.sha256(b"\x00" + struct.pack(">I", i) + word.encode("utf-8")).digest()
+def leaf(i: int, word: str, salt: bytes) -> bytes:
+    """The salt is what stops a hidden leaf's hash being guessed from a
+    dictionary. Salts for revealed words travel in the disclosure; the ones for
+    hidden words never leave the committer."""
+    return hashlib.sha256(
+        b"\x00" + struct.pack(">I", i) + salt + word.encode("utf-8")
+    ).digest()
 
 
 def node(a: bytes, b: bytes) -> bytes:
@@ -49,8 +54,8 @@ def verify(d: dict, root_hex: str) -> bool:
     proof = [bytes.fromhex(h) for h in d["proof"]]
     if len(proof) != d["leaf_count"]:
         return False
-    for i, word in d["revealed"]:
-        if not (0 <= i < len(proof)) or proof[i] != leaf(i, word):
+    for i, word, salt_hex in d["revealed"]:
+        if not (0 <= i < len(proof)) or proof[i] != leaf(i, word, bytes.fromhex(salt_hex)):
             return False
     return count(d["leaf_count"], fold(proof)).hex() == root_hex
 

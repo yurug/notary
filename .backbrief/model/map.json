@@ -185,6 +185,46 @@
         "count-in-root"
       ],
       "type": "property"
+    },
+    {
+      "answer": "Each binary gets a well-defined scope. One is a proven computation over a document; the other has a key and a socket.",
+      "citations": [
+        {
+          "contentHash": "a4b4b301a710d90b10e187dd73d0dc7d2a9db80b5c7e6fcef56a9d8b15f28f9f",
+          "endLine": 18,
+          "kind": "code",
+          "path": "chain/publish.mjs",
+          "rev": "worktree",
+          "startLine": 1
+        }
+      ],
+      "id": "separate-binary",
+      "level": "system",
+      "question": "Why is the chain a separate program?",
+      "requires": [
+        "boundary"
+      ],
+      "type": "rationale"
+    },
+    {
+      "answer": "A mistake there is loud. The published root either equals the one the core computed or it does not, and lookup answers that with no key.",
+      "citations": [
+        {
+          "contentHash": "b2b592b176d4fdf9d001b81a722e951dcc34487012c3535e8d8a2312825bc12b",
+          "endLine": 90,
+          "kind": "code",
+          "path": "chain/publish.mjs",
+          "rev": "worktree",
+          "startLine": 78
+        }
+      ],
+      "id": "loud-not-quiet",
+      "level": "subsystem",
+      "question": "What makes trusting that program acceptable?",
+      "requires": [
+        "separate-binary"
+      ],
+      "type": "property"
     }
   ],
   "version": 1

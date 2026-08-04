@@ -68,6 +68,30 @@ computational collision resistance SHA-256 actually offers. The trusted-base
 report says so in those words; a reader who is told "proven" and discovers this
 later has been misled by omission.
 
+## What the proof never covered, and what it cost
+
+The two theorems are about **compatibility**: what a verifier accepts is a
+redaction of the committed text. Neither says anything about **confidentiality**,
+and the glossary has said so since the first day.
+
+On 2026-08-04 that gap was measured rather than noticed. A disclosure carried
+one hash per leaf including the hidden ones, the index was public, and a
+forty-word dictionary recovered sixteen of eighteen hidden words in
+milliseconds. The redaction hid nothing, both theorems were true, and the
+property the product depended on was **nobody's obligation**.
+
+Two things made it possible. The proof format was chosen in cycle 3b for being
+provable, with the note that a multiproof "is a cycle of its own" — a decision
+made to make the proof easier, which destroyed the product. And the trusted base
+listed five things and not the one that mattered: **preimage resistance**, which
+appears in no hypothesis of the Rocq development because no theorem there speaks
+about hiding.
+
+The repair is a salt per leaf (round 5), derived from one secret per finding.
+The proven core did not change by a line: it quantifies over an abstract word
+type, and a salted word is still a word. The architecture held; the specification
+had a hole.
+
 ## The trusted base, asked of the kernel
 
 `make assumptions` prints what the two theorems actually rest on. A hand-kept
@@ -96,6 +120,12 @@ What the kernel cannot tell you, and what this list is for:
    the running program.
 4. **The leaf splitting**, outside the proof by card 4.
 5. The OCaml runtime and everything under it.
+6. **Preimage resistance of SHA-256**, on which the confidentiality of every
+   hidden word rests, and which no theorem here mentions. Added 2026-08-04,
+   after it was measured missing.
+7. **The per-finding secret**, and the fact that losing it makes the root
+   unopenable. The tool writes it into a file the committer keeps (round 5,
+   card 2), and refuses to overwrite one.
 6. **The chain program**, all of it: the key, the signer, the client and the
    ledger contract. It is a **separate binary** by round 4, on the engineer's
    reasoning that each binary should have a well-defined scope. What makes that
