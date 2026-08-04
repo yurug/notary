@@ -284,6 +284,107 @@ Qed.
     two leaves are ever equal, so the last element can never be a duplicate of
     its neighbour. *)
 
+(** *** The decomposition
+
+    Four steps. Distinctness is what rules out the one case where pairing is not
+    injective: [pair_up [x]] and [pair_up [x; x]] agree, so a list may only be
+    recovered from its next level if no element repeats. Leaves never repeat
+    because they carry their index, and that property has to survive each
+    level. *)
+
+Lemma leaves_from_nodup : forall ws i, NoDup (leaves_from i ws).
+Proof.
+  induction ws as [| w rest IH]; intros i; simpl; constructor.
+  - intros Hin.
+    (* a leaf at index i cannot appear later, where indices are all > i *)
+    assert (Hgen : forall rest' j, i < j -> In (hleaf i w) (leaves_from j rest') -> False).
+    { induction rest' as [| w' r' IH']; intros j Hlt Hin'.
+      - exact Hin'.
+      - simpl in Hin'. destruct Hin' as [Heq | Hlater].
+        + apply hleaf_inj in Heq. destruct Heq as [Hij _]. lia.
+        + apply (IH' (S j)); [lia | exact Hlater]. }
+    apply (Hgen rest (S i)); [lia | exact Hin].
+  - apply IH.
+Qed.
+
+Lemma leaves_of_nodup : forall ws, NoDup (leaves_of ws).
+Proof. intros ws. apply leaves_from_nodup. Qed.
+
+(** [pair_up] consumes two elements at a time and the library has no induction
+    principle for that shape, so every lemma below runs on a length bound. *)
+
+Lemma pair_up_in_aux :
+  forall n l d, length l <= n -> In d (pair_up l) ->
+    exists a b, d = hnode a b /\ In a l /\ In b l.
+Proof.
+  induction n as [| n IH]; intros l d Hlen Hin.
+  - destruct l as [| x l']; simpl in *; [contradiction | lia].
+  - destruct l as [| x [| y r]]; simpl in *.
+    + contradiction.
+    + destruct Hin as [Heq | []]. exists x, x. auto.
+    + destruct Hin as [Heq | Hlater].
+      * exists x, y. auto.
+      * assert (Hr : length r <= n) by lia.
+        destruct (IH r d Hr Hlater) as [a [b [Hd [Ha Hb]]]].
+        exists a, b. auto.
+Qed.
+
+Lemma pair_up_in :
+  forall l d, In d (pair_up l) -> exists a b, d = hnode a b /\ In a l /\ In b l.
+Proof. intros l d. apply (pair_up_in_aux (length l) l d). lia. Qed.
+
+Lemma pair_up_nodup_aux :
+  forall n l, length l <= n -> NoDup l -> NoDup (pair_up l).
+Proof.
+  induction n as [| n IH]; intros l Hlen Hnd.
+  - destruct l as [| x l']; simpl in *; [constructor | lia].
+  - destruct l as [| x [| y r]]; simpl in *.
+    + constructor.
+    + constructor; [intros [] | constructor].
+    + inversion Hnd as [| ? ? Hx Hnd']; subst.
+      inversion Hnd' as [| ? ? Hy Hnd'']; subst.
+      constructor.
+      * intros Hin. destruct (pair_up_in r (hnode x y) Hin) as [a [b [Hd [Ha Hb]]]].
+        apply hnode_inj in Hd. destruct Hd as [Hax Hby]. subst.
+        apply Hx. simpl. right. exact Ha.
+      * apply IH; [lia | exact Hnd''].
+Qed.
+
+Lemma pair_up_nodup : forall l, NoDup l -> NoDup (pair_up l).
+Proof. intros l. apply (pair_up_nodup_aux (length l) l). lia. Qed.
+
+Lemma pair_up_inj_aux :
+  forall n l l', length l <= n -> NoDup l -> NoDup l' ->
+    pair_up l = pair_up l' -> l = l'.
+Proof.
+  induction n as [| n IH]; intros l l' Hlen Hl Hl' Heq.
+  - destruct l as [| x l0]; simpl in *; [| lia].
+    destruct l' as [| y' [| z' r']]; simpl in *; auto; discriminate.
+  - destruct l as [| x [| y r]]; simpl in *.
+    + destruct l' as [| y' [| z' r']]; simpl in *; auto; discriminate.
+    + destruct l' as [| y' [| z' r']]; simpl in *.
+      * discriminate.
+      * injection Heq as Hh. apply hnode_inj in Hh. destruct Hh as [Hx _].
+        subst. reflexivity.
+      * injection Heq as Hh Ht. apply hnode_inj in Hh. destruct Hh as [Ha Hb].
+        subst. inversion Hl' as [| ? ? Hnin ?]; subst.
+        exfalso. apply Hnin. simpl. left. reflexivity.
+    + destruct l' as [| y' [| z' r']]; simpl in *.
+      * discriminate.
+      * injection Heq as Hh. apply hnode_inj in Hh. destruct Hh as [Ha Hb].
+        subst. inversion Hl as [| ? ? Hnin ?]; subst.
+        exfalso. apply Hnin. simpl. left. reflexivity.
+      * injection Heq as Hh Ht. apply hnode_inj in Hh. destruct Hh as [Ha Hb].
+        subst. f_equal. f_equal.
+        inversion Hl as [| ? ? _ Hl2]; subst. inversion Hl2 as [| ? ? _ Hl3]; subst.
+        inversion Hl' as [| ? ? _ Hl2']; subst. inversion Hl2' as [| ? ? _ Hl3']; subst.
+        apply (IH r r'); [lia | assumption | assumption | exact Ht].
+Qed.
+
+Lemma pair_up_inj :
+  forall l l', NoDup l -> NoDup l' -> pair_up l = pair_up l' -> l = l'.
+Proof. intros l l'. apply (pair_up_inj_aux (length l) l l'). lia. Qed.
+
 Lemma fold_determines_leaves :
   forall ws p r,
     fold_levels (length ws) (leaves_of ws) = Some r ->

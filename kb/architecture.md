@@ -87,8 +87,10 @@ What the kernel cannot tell you, and what this list is for:
    the running program.
 4. **The leaf splitting**, outside the proof by card 4.
 5. The OCaml runtime and everything under it.
-6. **`fold_determines_leaves`**, until cycle 3c discharges it. It is the piece
-   that makes forgery impossible, and it is an assumption today.
+6. **`fold_determines_leaves`**, still an assumption after cycle 3c stopped on
+   its declared budget. It is the piece that makes forgery impossible. Four
+   supporting lemmas around it are proven, so what remains is the induction over
+   levels rather than the whole claim.
 
 Worth recording beside it: the classic duplication attack, where a sequence and
 the same sequence with its last element repeated share a root, is blocked here
