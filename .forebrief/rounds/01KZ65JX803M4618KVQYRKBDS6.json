@@ -1,0 +1,90 @@
+{
+  "id": "01KZ65JX803M4618KVQYRKBDS6",
+  "posted_at": "2026-08-04T10:37:22.564Z",
+  "cards": [
+    {
+      "id": "01KZ65JX85VRCWFXXXB2DJX74H",
+      "round_id": "01KZ65JX803M4618KVQYRKBDS6",
+      "posted_at": "2026-08-04T10:37:22.564Z",
+      "kind": "question",
+      "prompt": "Which SHA-256 does the tool use?",
+      "context": "The core is parameterised by three hash functions and OCaml has to supply them. SHA-256 is in the trusted base by decision, so this card does not ask whether to trust it, but whose. No hash library is installed on this machine, so any answer here is also a change to the machine, and the deny-list rule about publishability does not cover opam switches. What makes this more than a dependency choice: a reporter has to be able to recompute the same digests, so whatever is chosen has to be reproducible by someone who does not have our repository.",
+      "options": [
+        {
+          "key": "1",
+          "label": "digestif, the usual OCaml choice",
+          "consequences": [
+            {
+              "text": "Widely used, pure OCaml with an optional C backend, and a reporter reimplementing the format can use any SHA-256 at all because the bytes are standard.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "It installs into the default opam switch, which is a change to the machine and belongs in bootstrap.sh and MACHINE.md by the standing rule.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Shell out to sha256sum",
+          "consequences": [
+            {
+              "text": "No library, no switch change, and the digest is computed by a binary the reader already trusts and can run themselves.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "A process per hash, which for a few hundred leaves is a few hundred processes, and the trusted base grows to include coreutils and the shell quoting.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "Vendor a small SHA-256 implementation in this repository",
+          "consequences": [
+            {
+              "text": "The trusted base contains code a reader can open in this repository rather than a package they must go and find, which suits a project whose thesis is that the trusted base should be readable.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "A hand-carried cryptographic primitive is the classic way to ship a subtle bug, and it is the one part of this system nobody here should be writing.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    }
+  ],
+  "title": "notary, round 3: which SHA-256 enters the trusted base"
+}
