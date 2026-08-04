@@ -36,15 +36,26 @@ soundness plus completeness, the second being about the prover-verifier pair.
 `make` is green. No `verify` exists yet, so nothing satisfies either property
 and that is the honest state.
 
-## Cycle 3b — Discharge the two properties
+## Cycle 3b — Discharge the two properties *(done, one axiom short)*
 
-**Ships:** a concrete `verify` and `build`, with `verify_sound` and
-`prover_complete` proven.
+A concrete `build` and `verify` exist. **Completeness is proven and closed under
+the global context.** **Soundness is proven modulo one axiom**,
+`fold_determines_leaves`.
 
-**The unknown:** whether soundness needs more than the three hash hypotheses.
-Recomputing a root from siblings and concluding that revealed words sit where
-they claim is where injectivity has to do real work, and it is where a fourth
-assumption would appear if one is missing.
+The named unknown was whether soundness would need a fourth hypothesis. It
+needed one, and it is a fourth *parameter* rather than a hash property:
+`digest_eqb` with its specification, because a verifier has to compare digests.
+`hleaf_inj` earned its place exactly where predicted, reading a word back out of
+a leaf.
+
+## Cycle 3c — Discharge `fold_determines_leaves`
+
+**Ships:** the axiom, proven, and `make assumptions` reporting both theorems
+closed under the global context.
+
+**The unknown:** whether it is true as stated. It quantifies over sequences of
+different lengths, and the argument that it holds runs through
+`hleaf_hnode_disjoint`, which is exactly the hypothesis nothing has used yet.
 
 ## Cycle 4 — Extraction, and the shell around it
 

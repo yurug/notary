@@ -10,7 +10,7 @@
     the computational collision resistance SHA-256 actually offers is named in
     the trusted-base list rather than hidden. *)
 
-From Stdlib Require Import List Arith.
+From Stdlib Require Import List Arith Lia.
 Import ListNotations.
 
 (** ** The parameter
@@ -57,8 +57,18 @@ Fixpoint fold_levels (fuel : nat) (l : list digest) : option digest :=
   | S f, _ => fold_levels f (pair_up l)
   end.
 
-Definition leaves_of (ws : list word) : list digest :=
-  map (fun p => hleaf (fst p) (snd p)) (combine (seq 0 (length ws)) ws).
+(** Written with an index accumulator rather than [combine (seq 0 …)]. The two
+    are equal; this one is the one whose lemmas are three lines each, and a
+    definition chosen for provability is a legitimate design decision in a
+    module whose reason to exist is that it is proven. *)
+
+Fixpoint leaves_from (i : nat) (ws : list word) : list digest :=
+  match ws with
+  | [] => []
+  | w :: rest => hleaf i w :: leaves_from (S i) rest
+  end.
+
+Definition leaves_of (ws : list word) : list digest := leaves_from 0 ws.
 
 (** [None] only for the empty sequence, which is not a finding: leaf 0 is the
     subject, so every real finding has at least one leaf. *)
@@ -100,7 +110,21 @@ Definition projects (d : disclosure) (ws : list word) : Prop :=
     always defend a true claim. A tool with only the second proves nothing; a
     tool with only the first can refuse the truth. *)
 
-Variable proof_data : Type.
+(** Digests come off a hash, so they compare. This is a fourth parameter and it
+    is honest: SHA-256 outputs are bytes. *)
+
+Variable digest_eqb : digest -> digest -> bool.
+Hypothesis digest_eqb_true : forall a b, digest_eqb a b = true <-> a = b.
+
+(** ** The proof a disclosure carries
+
+    The leaf digests of the whole sequence. Every hidden word contributes its
+    hash and nothing else, which is what a hash is for. The alternative, a
+    multiproof of shared siblings, is smaller and is a cycle of its own; this
+    one is the shape that can be proven today, and the size is a few hundred
+    hashes for a finding a person wrote. *)
+
+Definition proof_data := list digest.
 
 Definition verify_spec
   (verify : disclosure -> proof_data -> digest -> bool) : Prop :=
@@ -152,6 +176,141 @@ Definition prover_complete
     root_of ws = Some r ->
     projects d ws ->
     verify d (build d ws) r = true.
+
+(** ** A concrete prover and verifier *)
+
+Definition build (_ : disclosure) (ws : list word) : proof_data := leaves_of ws.
+
+Definition checks_out (p : proof_data) (iw : nat * word) : bool :=
+  match nth_error p (fst iw) with
+  | Some h => digest_eqb h (hleaf (fst iw) (snd iw))
+  | None => false
+  end.
+
+Definition verify (d : disclosure) (p : proof_data) (r : digest) : bool :=
+  Nat.eqb (length p) (leaf_count d)
+  && forallb (checks_out p) (revealed d)
+  && match fold_levels (length p) p with
+     | Some r' => digest_eqb r' r
+     | None => false
+     end.
+
+(** ** Two lemmas about the leaf sequence *)
+
+Lemma leaves_from_length :
+  forall ws i, length (leaves_from i ws) = length ws.
+Proof.
+  induction ws as [| w rest IH]; intros i; simpl; auto.
+Qed.
+
+Lemma leaves_of_length : forall ws, length (leaves_of ws) = length ws.
+Proof. intros ws. apply leaves_from_length. Qed.
+
+Lemma leaves_from_nth :
+  forall ws k i w, nth_error ws k = Some w ->
+    nth_error (leaves_from i ws) k = Some (hleaf (i + k) w).
+Proof.
+  induction ws as [| w0 rest IH]; intros k i w H.
+  - destruct k; discriminate.
+  - destruct k as [| k']; simpl in *.
+    + injection H as ->. rewrite Nat.add_0_r. reflexivity.
+    + rewrite (IH k' (S i) w H). rewrite Nat.add_succ_comm. reflexivity.
+Qed.
+
+Lemma leaves_of_nth :
+  forall ws i w, nth_error ws i = Some w ->
+    nth_error (leaves_of ws) i = Some (hleaf i w).
+Proof.
+  intros ws i w H. unfold leaves_of.
+  rewrite (leaves_from_nth ws i 0 w H). reflexivity.
+Qed.
+
+(** ** Completeness: an honest disclosure is always defensible *)
+
+Theorem build_verify_complete : prover_complete build verify.
+Proof.
+  unfold prover_complete, verify, build.
+  intros ws d r Hroot [Hlen Hin].
+  rewrite leaves_of_length.
+  apply andb_true_intro; split.
+  - apply andb_true_intro; split.
+    + apply Nat.eqb_eq. symmetry. exact Hlen.
+    + apply forallb_forall. intros [i w] Hmem.
+      unfold checks_out. cbn [fst snd].
+      rewrite (leaves_of_nth ws i w (Hin i w Hmem)).
+      apply digest_eqb_true. reflexivity.
+  - unfold root_of in Hroot. rewrite Hroot.
+    apply digest_eqb_true. reflexivity.
+Qed.
+
+(** ** Soundness
+
+    Reading a word back out of the leaf sequence is where [hleaf_inj] earns its
+    place: from a leaf digest we recover the word only because no other word at
+    no other index could have produced it. *)
+
+Lemma leaves_from_nth_inv :
+  forall ws k i w, nth_error (leaves_from i ws) k = Some (hleaf (i + k) w) ->
+    nth_error ws k = Some w.
+Proof.
+  induction ws as [| w0 rest IH]; intros k i w H.
+  - destruct k; discriminate.
+  - destruct k as [| k']; simpl in *.
+    + injection H as H. rewrite Nat.add_0_r in H.
+      apply hleaf_inj in H. destruct H as [_ ->]. reflexivity.
+    + apply (IH k' (S i) w).
+      replace (S i + k') with (i + S k') by lia. exact H.
+Qed.
+
+Lemma leaves_of_nth_inv :
+  forall ws i w, nth_error (leaves_of ws) i = Some (hleaf i w) ->
+    nth_error ws i = Some w.
+Proof.
+  intros ws i w H. unfold leaves_of in H.
+  apply (leaves_from_nth_inv ws i 0 w). exact H.
+Qed.
+
+(** The one thing this development does not prove yet.
+
+    Two sequences of leaves that fold to the same root are the same sequence.
+    It should follow from [hnode_inj] and [hleaf_hnode_disjoint], by induction
+    on the levels, and it is the piece that makes forgery impossible. Until it
+    is discharged it is an assumption, so it is listed in the trusted base with
+    the others rather than hidden behind an [Admitted] nobody reads.
+
+    Worth recording: the classic duplication attack, where a sequence and the
+    same sequence with its last element repeated share a root, is *blocked here
+    by construction* rather than by this lemma. Leaves carry their index, so no
+    two leaves are ever equal, so the last element can never be a duplicate of
+    its neighbour. *)
+
+Lemma fold_determines_leaves :
+  forall ws p r,
+    fold_levels (length ws) (leaves_of ws) = Some r ->
+    fold_levels (length p) p = Some r ->
+    p = leaves_of ws.
+Proof.
+Admitted.
+
+Theorem verify_is_sound : verify_sound verify.
+Proof.
+  unfold verify_sound, verify. intros ws d p r Hroot Hv.
+  apply andb_prop in Hv. destruct Hv as [Hv12 H3].
+  apply andb_prop in Hv12. destruct Hv12 as [H1 H2].
+  apply Nat.eqb_eq in H1.
+  destruct (fold_levels (length p) p) as [r' |] eqn:Hfold; [| discriminate].
+  apply digest_eqb_true in H3. subst r'.
+  unfold root_of in Hroot.
+  assert (Hp : p = leaves_of ws) by (apply (fold_determines_leaves ws p r); assumption).
+  subst p. split.
+  - rewrite <- H1. apply leaves_of_length.
+  - intros i w Hmem.
+    apply (leaves_of_nth_inv ws i w).
+    pose proof (proj1 (forallb_forall (checks_out (leaves_of ws)) (revealed d)) H2 (i, w) Hmem) as Hc.
+    unfold checks_out in Hc. cbn [fst snd] in Hc.
+    destruct (nth_error (leaves_of ws) i) as [h |] eqn:Hn; [| discriminate].
+    apply digest_eqb_true in Hc. subst h. reflexivity.
+Qed.
 
 End Merkle.
 

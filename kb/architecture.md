@@ -67,7 +67,17 @@ computational collision resistance SHA-256 actually offers. The trusted-base
 report says so in those words; a reader who is told "proven" and discovers this
 later has been misled by omission.
 
-## The trusted base, so far
+## The trusted base, asked of the kernel
+
+`make assumptions` prints what the two theorems actually rest on. A hand-kept
+list drifts the moment a proof changes; this one cannot, because it is the
+kernel's answer.
+
+Today it says: completeness is **closed under the global context**, and
+soundness rests on exactly one axiom, `fold_determines_leaves`, the unproven
+claim that two leaf sequences folding to the same root are the same sequence.
+
+What the kernel cannot tell you, and what this list is for:
 
 1. **SHA-256**, by decision. Not proven, supplied by OCaml.
 2. **The injectivity idealisation** above, in its three parts. Real hashes offer
@@ -77,6 +87,14 @@ later has been misled by omission.
    the running program.
 4. **The leaf splitting**, outside the proof by card 4.
 5. The OCaml runtime and everything under it.
+6. **`fold_determines_leaves`**, until cycle 3c discharges it. It is the piece
+   that makes forgery impossible, and it is an assumption today.
+
+Worth recording beside it: the classic duplication attack, where a sequence and
+the same sequence with its last element repeated share a root, is blocked here
+**by construction** rather than by that lemma. Leaves carry their index, so no
+two leaves are ever equal, so a last element can never be a duplicate of its
+neighbour.
 
 A list that grows is not a failure; a list nobody wrote is.
 
