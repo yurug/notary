@@ -69,6 +69,17 @@ where the two sequences may have different lengths and therefore different fuel.
 `hleaf_hnode_disjoint` is still the hypothesis nothing has used, and it is what
 rules out a one-leaf sequence sharing a root with a longer one.
 
+## Cycle 3e — Bind the length *(done; soundness closed, no axioms)*
+
+Round 2 chose to bind the leaf count into the root. Four attempts declared, four
+spent, and both theorems are now closed under the global context. Seventeen
+proofs.
+
+The shape of the result is worth keeping: **the obligation that resisted a proof
+was removed by a change to the construction.** That is not a retreat. A design
+where the hard case cannot arise is better than a design where it is handled,
+and the proof attempt is what identified which case that was.
+
 ## Cycle 3d — The induction over levels *(done; the residue is a decision, not a proof)*
 
 `fold_levels_inj` is proven: at equal length, two sequences of distinct elements

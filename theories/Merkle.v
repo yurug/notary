@@ -36,6 +36,17 @@ Hypothesis hnode_inj :
 Hypothesis hleaf_hnode_disjoint :
   forall i w a b, hleaf i w <> hnode a b.
 
+(** The root commits to the leaf count as well as to the leaves (round 2). A
+    fifth parameter, and the reason it exists is worth keeping next to it: two
+    sequences of *different* lengths sharing a root was the last obligation
+    standing, and binding the count makes the question unaskable rather than
+    answerable. The cost is on the format, not on the proof: a root computed
+    without this cannot be recomputed with it. *)
+
+Variable hcount : nat -> digest -> digest.
+Hypothesis hcount_inj :
+  forall n m a b, hcount n a = hcount m b -> n = m /\ a = b.
+
 (** ** The tree
 
     One level at a time, pairing neighbours. An odd level duplicates its last
@@ -74,7 +85,10 @@ Definition leaves_of (ws : list word) : list digest := leaves_from 0 ws.
     subject, so every real finding has at least one leaf. *)
 
 Definition root_of (ws : list word) : option digest :=
-  fold_levels (length ws) (leaves_of ws).
+  match fold_levels (length ws) (leaves_of ws) with
+  | Some r => Some (hcount (length ws) r)
+  | None => None
+  end.
 
 (** ** A disclosure
 
@@ -191,7 +205,7 @@ Definition verify (d : disclosure) (p : proof_data) (r : digest) : bool :=
   Nat.eqb (length p) (leaf_count d)
   && forallb (checks_out p) (revealed d)
   && match fold_levels (length p) p with
-     | Some r' => digest_eqb r' r
+     | Some r' => digest_eqb (hcount (length p) r') r
      | None => false
      end.
 
@@ -231,6 +245,10 @@ Theorem build_verify_complete : prover_complete build verify.
 Proof.
   unfold prover_complete, verify, build.
   intros ws d r Hroot [Hlen Hin].
+  unfold root_of in Hroot.
+  destruct (fold_levels (length ws) (leaves_of ws)) as [r0 |] eqn:Hf;
+    [| discriminate].
+  injection Hroot as Hr. subst r.
   rewrite leaves_of_length.
   apply andb_true_intro; split.
   - apply andb_true_intro; split.
@@ -239,8 +257,7 @@ Proof.
       unfold checks_out. cbn [fst snd].
       rewrite (leaves_of_nth ws i w (Hin i w Hmem)).
       apply digest_eqb_true. reflexivity.
-  - unfold root_of in Hroot. rewrite Hroot.
-    apply digest_eqb_true. reflexivity.
+  - rewrite Hf. apply digest_eqb_true. reflexivity.
 Qed.
 
 (** ** Soundness
@@ -403,7 +420,55 @@ Lemma pair_up_length_eq :
   forall l l', length l = length l' -> length (pair_up l) = length (pair_up l').
 Proof. intros l l'. apply (pair_up_length_eq_aux (length l) l l'). lia. Qed.
 
-(** Injectivity of the fold, at equal length. This is the whole of
+(** With the length bound into the root, the two sequences a verifier compares
+    always have the same length, and at equal length pairing is injective with
+    **no distinctness hypothesis at all**: the only case [NoDup] ever ruled out
+    was a singleton against a longer list, which is a length mismatch. So the
+    critical path shortens, and [leaves_of_nodup] stops being load-bearing and
+    becomes what it always described, the reason the duplication attack cannot
+    reach the leaves. *)
+
+Lemma pair_up_inj_len_aux :
+  forall n l l', length l <= n -> length l = length l' ->
+    pair_up l = pair_up l' -> l = l'.
+Proof.
+  induction n as [| n IH]; intros l l' Hn Hlen Heq.
+  - destruct l as [| x l0]; destruct l' as [| x' l0']; simpl in *;
+      lia || reflexivity.
+  - destruct l as [| x [| y r]]; destruct l' as [| x' [| y' r']];
+      simpl in *; try lia.
+    + reflexivity.
+    + injection Heq as Hh. apply hnode_inj in Hh. destruct Hh as [Ha _].
+      subst. reflexivity.
+    + injection Heq as Hh Ht. apply hnode_inj in Hh. destruct Hh as [Ha Hb].
+      subst. f_equal. f_equal. apply (IH r r'); [lia | lia | exact Ht].
+Qed.
+
+Lemma pair_up_inj_len :
+  forall l l', length l = length l' -> pair_up l = pair_up l' -> l = l'.
+Proof. intros l l'. apply (pair_up_inj_len_aux (length l) l l'). lia. Qed.
+
+Lemma fold_levels_inj_len :
+  forall n l l' r, length l = length l' ->
+    fold_levels n l = Some r -> fold_levels n l' = Some r -> l = l'.
+Proof.
+  induction n as [| n IH]; intros l l' r Hlen H H'.
+  - destruct l as [| x [| y t]]; destruct l' as [| x' [| y' t']];
+      simpl in *; try discriminate; try lia.
+    injection H as Hx. injection H' as Hx'. subst. reflexivity.
+  - destruct l as [| x [| y t]]; destruct l' as [| x' [| y' t']];
+      simpl in *; try discriminate; try lia.
+    + injection H as Hx. injection H' as Hx'. subst. reflexivity.
+    + apply pair_up_inj_len; [simpl; lia |].
+      apply (IH (hnode x y :: pair_up t) (hnode x' y' :: pair_up t') r).
+      * change (hnode x y :: pair_up t) with (pair_up (x :: y :: t)).
+        change (hnode x' y' :: pair_up t') with (pair_up (x' :: y' :: t')).
+        apply pair_up_length_eq. simpl. lia.
+      * exact H.
+      * exact H'.
+Qed.
+
+(** Injectivity of the fold, at equal length, with distinctness. This is the whole of
     [fold_determines_leaves] except the question of whether two sequences of
     *different* lengths can share a root, which is a question about the
     construction rather than about this proof, and which round 2 decides. *)
@@ -433,12 +498,19 @@ Proof.
 Qed.
 
 Lemma fold_determines_leaves :
-  forall ws p r,
-    fold_levels (length ws) (leaves_of ws) = Some r ->
-    fold_levels (length p) p = Some r ->
+  forall ws p r0 rp,
+    fold_levels (length ws) (leaves_of ws) = Some r0 ->
+    fold_levels (length p) p = Some rp ->
+    hcount (length ws) r0 = hcount (length p) rp ->
     p = leaves_of ws.
 Proof.
-Admitted.
+  intros ws p r0 rp Hw Hp Hc.
+  apply hcount_inj in Hc. destruct Hc as [Hlen Hr]. subst rp.
+  symmetry. apply (fold_levels_inj_len (length ws) (leaves_of ws) p r0).
+  - rewrite leaves_of_length. exact Hlen.
+  - exact Hw.
+  - rewrite Hlen. exact Hp.
+Qed.
 
 Theorem verify_is_sound : verify_sound verify.
 Proof.
@@ -446,18 +518,24 @@ Proof.
   apply andb_prop in Hv. destruct Hv as [Hv12 H3].
   apply andb_prop in Hv12. destruct Hv12 as [H1 H2].
   apply Nat.eqb_eq in H1.
-  destruct (fold_levels (length p) p) as [r' |] eqn:Hfold; [| discriminate].
-  apply digest_eqb_true in H3. subst r'.
+  destruct (fold_levels (length p) p) as [rp |] eqn:Hfp; [| discriminate].
+  apply digest_eqb_true in H3.
   unfold root_of in Hroot.
-  assert (Hp : p = leaves_of ws) by (apply (fold_determines_leaves ws p r); assumption).
+  destruct (fold_levels (length ws) (leaves_of ws)) as [r0 |] eqn:Hfw;
+    [| discriminate].
+  injection Hroot as Hr.
+  assert (Hc : hcount (length ws) r0 = hcount (length p) rp)
+    by (rewrite Hr, H3; reflexivity).
+  assert (Hp : p = leaves_of ws)
+    by (apply (fold_determines_leaves ws p r0 rp); assumption).
   subst p. split.
   - rewrite <- H1. apply leaves_of_length.
   - intros i w Hmem.
     apply (leaves_of_nth_inv ws i w).
-    pose proof (proj1 (forallb_forall (checks_out (leaves_of ws)) (revealed d)) H2 (i, w) Hmem) as Hc.
-    unfold checks_out in Hc. cbn [fst snd] in Hc.
+    pose proof (proj1 (forallb_forall (checks_out (leaves_of ws)) (revealed d)) H2 (i, w) Hmem) as Hc2.
+    unfold checks_out in Hc2. cbn [fst snd] in Hc2.
     destruct (nth_error (leaves_of ws) i) as [h |] eqn:Hn; [| discriminate].
-    apply digest_eqb_true in Hc. subst h. reflexivity.
+    apply digest_eqb_true in Hc2. subst h. reflexivity.
 Qed.
 
 End Merkle.
