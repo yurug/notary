@@ -4,7 +4,18 @@
       "evidence": [],
       "nodeId": "boundary",
       "state": "introduced",
-      "updatedAt": "2026-08-04T12:41:36.895Z"
+      "updatedAt": "2026-08-04T17:59:17.345Z"
+    },
+    {
+      "evidence": [
+        {
+          "kind": "staleness",
+          "ts": "2026-08-04T18:14:03.424Z"
+        }
+      ],
+      "nodeId": "splitting-outside",
+      "state": "invalidated",
+      "updatedAt": "2026-08-04T18:14:03.424Z"
     }
   ],
   "version": 1

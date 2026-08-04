@@ -1,0 +1,232 @@
+{
+  "id": "01KZ6ZW268W8VQX36NEJAJCCH8",
+  "posted_at": "2026-08-04T18:16:45.516Z",
+  "cards": [
+    {
+      "id": "01KZ6ZW26D3XCSGBGE1PNVA5ZM",
+      "round_id": "01KZ6ZW268W8VQX36NEJAJCCH8",
+      "posted_at": "2026-08-04T18:16:45.516Z",
+      "kind": "question",
+      "prompt": "How does a hidden word stop being guessable?",
+      "context": "Measured on 2026-08-04: a disclosure carries one hash per leaf including the hidden ones, the index is public, and words come from a tiny space. A forty-word dictionary recovered sixteen of eighteen hidden words in milliseconds. The redaction hid nothing.\n\nTwo repairs are on the table and they are not alternatives in the usual sense: one changes the shell only, the other changes the proven core. The engineer identified the second and asked about the first.",
+      "options": [
+        {
+          "key": "1",
+          "label": "Salt every leaf, derived from one secret per finding",
+          "consequences": [
+            {
+              "text": "Closes it completely and unconditionally: even a single hidden word is safe, and confidentiality stops depending on how the author redacts. The proven core is untouched, because it quantifies over an abstract word type and a salted word is still a word.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The committer now holds a secret per finding, and a lost secret means a root that can never be opened. See the next card.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "irreversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Redact whole subtrees, so a hidden region is one node hash",
+          "consequences": [
+            {
+              "text": "The right construction rather than a patch, and it shrinks a disclosure by two orders of magnitude. Breaking a subtree of eight words needs all eight guessed at once, about 10^32 attempts.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "It changes proof_data and verify inside the core, so the seventeen proofs are redone. And it leaves the edges: measured, a hidden run of 18 words in 30 still exposes 2 individual leaves, and a run of 3 exposes 1.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "Both: salt now, subtrees in a later cycle",
+          "consequences": [
+            {
+              "text": "The hole closes today with a shell change, and the better construction lands when there is a cycle for it. The salt makes the edge leaves harmless in the meantime, so the two do not compete.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The proofs get redone eventually anyway, and the intervening version ships a disclosure format that a later one will break.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "id": "01KZ6ZW26E5872E40GN6GET3P4",
+      "round_id": "01KZ6ZW268W8VQX36NEJAJCCH8",
+      "posted_at": "2026-08-04T18:16:45.516Z",
+      "kind": "question",
+      "prompt": "If there is a secret, what happens when it is lost?",
+      "context": "Salting introduces something the no-salt design does not have: a per-finding secret the committer must keep for as long as the commitment might matter, which is years. Lose it and the root is unopenable: you can prove a text existed and can never show any part of it. That is a failure mode the current design simply does not have, and it deserves a decision rather than a discovery.",
+      "options": [
+        {
+          "key": "1",
+          "label": "The tool prints it once and says so; keeping it is the team's problem",
+          "consequences": [
+            {
+              "text": "The tool stays a local computation with no storage, no key file and no lifecycle, which is the shape the architecture argues for.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The first secret will be lost by someone who pasted it into a terminal that scrolled, and the tool will have been technically correct about it.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "The tool stores it beside the finding, in a file it names",
+          "consequences": [
+            {
+              "text": "Losing it takes deleting a file rather than closing a window, and the tool can refuse to commit twice into the same place.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The tool gains state, a path convention and a story about backups, and the thing it stores is exactly the thing that must not leak.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "Derive the secret from a passphrase the team already manages",
+          "consequences": [
+            {
+              "text": "No new secret to lose: the team's existing secret management covers it, and two people can independently reconstruct the salts.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "A passphrase is guessable in a way 32 random bytes are not, and the whole point of the salt was that guessing must be impossible.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "01KZ6ZW26F1FPBE0BE8TZ6ZQAV",
+      "round_id": "01KZ6ZW268W8VQX36NEJAJCCH8",
+      "posted_at": "2026-08-04T18:16:45.516Z",
+      "kind": "question",
+      "prompt": "What does the tool tell a user about how much a redaction hides?",
+      "context": "Today it renders gap lengths and says the judgement is yours. That was honest when hiding was believed to work; it was wrong in fact, and the tool said nothing while the redaction hid nothing. Whatever is decided above, the question of what the tool claims about its own protection is separate and now has a history.",
+      "options": [
+        {
+          "key": "1",
+          "label": "State the property, in the output, every time",
+          "consequences": [
+            {
+              "text": "A user reads what protects the hidden words and under what assumption, at the moment they decide, rather than in a document they read once.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Output that explains itself every run becomes noise people stop reading, which is how the warning that matters gets skipped.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Say nothing, and put it in the format specification",
+          "consequences": [
+            {
+              "text": "The tool stays quiet and the claim lives in one place, where it can be precise and where a reporter reads it too.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Nobody reads a specification before redacting, and the person who needs the sentence is the one about to share something.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    }
+  ],
+  "title": "notary, round 5: what a redaction actually hides"
+}
