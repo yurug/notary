@@ -1,0 +1,7 @@
+# The floor under the rule that actually protects this recording: the workspace
+# is publishable by construction. It catches what it lists, and nothing more.
+/\b[a-z0-9-]+\.(internal|corp|lan|intra)\.[a-z]+\b/
+/\b(BB|SEC|VULN)-[0-9]{3,}\b/
+/-----BEGIN [A-Z ]*PRIVATE KEY-----/
+/\bedsk[1-9A-HJ-NP-Za-km-z]{50,}\b/
+/\b(api[_-]?key|secret|passwd|password)\s*[:=]\s*\S+/
