@@ -31,10 +31,24 @@ theorem is about a different sequence than the one the engineer wrote.
 
 ## What the theorem says
 
-Round 1, card 1: verification accepts a disclosure **if and only if** it is a
-projection of the committed sequence. Both directions are load-bearing.
-Accepting too much lets a claim be forged; rejecting too much leaves an honest
-team unable to defend a true one.
+Round 1, card 1 asked for a biconditional: verification accepts a disclosure
+**if and only if** it is a projection of the committed sequence.
+
+**Cycle 3 proved that statement wrong**, in Rocq, in six lines
+(`spec_forces_ignoring_the_proof`). Written as one biconditional over a given
+proof, it demands that acceptance depend only on the disclosure and the root, so
+any verifier satisfying it must return the same answer whatever proof it is
+handed. A verifier that ignores its proof accepts anything.
+
+The card's intent survives; its formulation did not. The obligation is now two:
+
+- **Soundness**, of the verifier alone: whatever it accepts really is a
+  redaction of the committed sequence.
+- **Completeness**, of the *pair*: for an honest disclosure there exists a proof
+  that is accepted, and the prover is what produces it.
+
+That split is the finding. The single biconditional hid the fact that one of its
+two directions is a statement about a program nobody had named.
 
 Round 1, card 2: the hash is a module parameter carrying an injectivity
 hypothesis, so the statement reads *for any hash injective on the encodings we

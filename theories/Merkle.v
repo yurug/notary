@@ -108,6 +108,51 @@ Definition verify_spec
     root_of ws = Some r ->
     (verify d p r = true <-> projects d ws).
 
+(** ** Cycle 3: the statement above is wrong, and here is the proof
+
+    It looks right and it type-checks, which is exactly why it survived a cycle.
+    What it actually demands is that acceptance depend only on the disclosure
+    and the root, so a verifier satisfying it must return the same answer
+    whatever proof it is handed. A verifier that ignores its proof accepts
+    anything. *)
+
+Theorem spec_forces_ignoring_the_proof :
+  forall verify, verify_spec verify ->
+    forall ws d p p' r,
+      root_of ws = Some r -> verify d p r = verify d p' r.
+Proof.
+  intros verify Hspec ws d p p' r Hroot.
+  destruct (Hspec ws d p r Hroot) as [Hp1 Hp2].
+  destruct (Hspec ws d p' r Hroot) as [Hq1 Hq2].
+  destruct (verify d p r) eqn:Ep; destruct (verify d p' r) eqn:Eq; try reflexivity.
+  - symmetry. apply Hq2. apply Hp1. reflexivity.
+  - apply Hp2. apply Hq1. reflexivity.
+Qed.
+
+(** ** The obligation, restated
+
+    Soundness belongs to the verifier alone: whatever it accepts really is a
+    redaction. Completeness belongs to the *pair*, prover and verifier: for an
+    honest disclosure there exists a proof that is accepted, and the prover is
+    what produces it. Splitting them is not a technicality. The single
+    biconditional hid the fact that one of the two directions is a statement
+    about a program nobody had thought to name. *)
+
+Definition verify_sound
+  (verify : disclosure -> proof_data -> digest -> bool) : Prop :=
+  forall ws d p r,
+    root_of ws = Some r ->
+    verify d p r = true ->
+    projects d ws.
+
+Definition prover_complete
+  (build : disclosure -> list word -> proof_data)
+  (verify : disclosure -> proof_data -> digest -> bool) : Prop :=
+  forall ws d r,
+    root_of ws = Some r ->
+    projects d ws ->
+    verify d (build d ws) r = true.
+
 End Merkle.
 
 (** ** What the obligation does not say
