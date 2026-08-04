@@ -20,7 +20,7 @@ depend on it.
 | Layer | What it is | How it is held |
 |---|---|---|
 | **The core** | the Merkle tree over an abstract hash: build, prove a disclosure, verify one | proven in Rocq, extracted to OCaml |
-| **The shell** | word splitting, SHA-256, files, the chain, the command line, the redaction view | tested |
+| **The shell** | word splitting, SHA-256, files, the command line, the redaction view | tested |
 | **The base** | what neither holds: the extractor, the hash implementation, the runtime | **named**, not held |
 
 The line is drawn in round 1, card 4: everything but the tree is outside. That
@@ -84,7 +84,10 @@ What the kernel cannot tell you, and what this list is for:
    `Extract Inductive nat => "int"`, makes the same assumption invisible *and*
    adds that no index exceeds 63 bits, so it is written out instead.
 
-1. **SHA-256**, by decision. Not proven, supplied by OCaml.
+1. **SHA-256**, by decision, from `digestif` 1.3.0 (round 3). Not proven. The
+   three tagged constructions around it, `0x00` for a leaf with its index,
+   `0x01` for a node, `0x02` for the root with its count, live in
+   `src/notary.ml` and are what the theorem's disjointness hypotheses assume.
 2. **The injectivity idealisation** above, in its three parts. Real hashes offer
    computational collision resistance, not injectivity; the distance between the
    two is where a cryptographer would start reading.
