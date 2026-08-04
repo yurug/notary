@@ -26,16 +26,25 @@ cheapest possible moment to learn it.
 **Acceptance:** the theorem fits on a screen, and a sentence of English says the
 same thing.
 
-## Cycle 3 — The proof
+## Cycle 3 — The proof *(done, and it changed the obligation)*
 
-**Ships:** the theorem, proven, no `Admitted` left.
+The reverse direction was the named unknown, and attempting it produced a
+different result: the obligation as stated was unsatisfiable. That is proven
+rather than argued (`spec_forces_ignoring_the_proof`), and the obligation is now
+soundness plus completeness, the second being about the prover-verifier pair.
 
-**The unknown:** the reverse direction. Forgery-freeness is where the injectivity
-hypothesis earns its place, and it is the half that can turn out to need a
-stronger assumption than the statement carries.
+`make` is green. No `verify` exists yet, so nothing satisfies either property
+and that is the honest state.
 
-**Acceptance:** `make` is green from a clean checkout, and the trusted-base list
-in `architecture.md` has grown or not, on the record.
+## Cycle 3b — Discharge the two properties
+
+**Ships:** a concrete `verify` and `build`, with `verify_sound` and
+`prover_complete` proven.
+
+**The unknown:** whether soundness needs more than the three hash hypotheses.
+Recomputing a root from siblings and concluding that revealed words sit where
+they claim is where injectivity has to do real work, and it is where a fourth
+assumption would appear if one is missing.
 
 ## Cycle 4 — Extraction, and the shell around it
 
