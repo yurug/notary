@@ -7,3 +7,4 @@ _build/
 _build/
 extracted/
 chain/node_modules/
+.lia.cache
