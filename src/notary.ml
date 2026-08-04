@@ -50,11 +50,43 @@ let core_build d ws = Extracted.Merkle.build core_leaf d ws
 let core_verify d p r =
   Extracted.Merkle.verify core_leaf Sha256.node (fun n r -> Sha256.count (int_of_nat n) r) Sha256.equal d p r
 
+(* Minimal JSON string escaping: enough for words out of a text file. *)
+let json_string s =
+  let b = Buffer.create (String.length s + 2) in
+  Buffer.add_char b '"';
+  String.iter (fun c ->
+      match c with
+      | '"' -> Buffer.add_string b "\\\""
+      | '\\' -> Buffer.add_string b "\\\\"
+      | '\n' -> Buffer.add_string b "\\n"
+      | '\t' -> Buffer.add_string b "\\t"
+      | c when Char.code c < 0x20 -> Buffer.add_string b (Printf.sprintf "\\u%04x" (Char.code c))
+      | c -> Buffer.add_char b c) s;
+  Buffer.add_char b '"';
+  Buffer.contents b
+
 let read_file path =
   let ic = open_in_bin path in
   let n = in_channel_length ic in
   let s = really_input_string ic n in
   close_in ic; s
+
+let flag name =
+  let rec go = function
+    | a :: b :: _ when a = name -> Some b
+    | _ :: t -> go t
+    | [] -> None
+  in
+  go (Array.to_list Sys.argv)
+
+let flag_out () = flag "--out"
+
+(* A missing flag is a message, not an exception. Found by running the tool
+ * with no arguments, which is the first thing anyone does. *)
+let need name =
+  match flag name with
+  | Some v -> v
+  | None -> prerr_endline ("E_ARGS: " ^ name ^ " is required."); exit 1
 
 (* --- the commands --- *)
 
@@ -112,22 +144,33 @@ let cmd_disclose subject file spec =
     let p = core_build d ws in
     Printf.printf "\nroot %s\nproof %d digests\nverifies: %b\n"
       (hex r) (List.length p) (core_verify d p r);
+    (* The artifact a reporter is handed. kb/format.md is what lets them check
+     * it without any of this. *)
+    (match flag_out () with
+     | None -> ()
+     | Some path ->
+       let oc = open_out path in
+       Printf.fprintf oc "{\n  \"leaf_count\": %d,\n  \"revealed\": [" (List.length ws);
+       List.iteri (fun k (i, w) ->
+           Printf.fprintf oc "%s[%d, %s]" (if k = 0 then "" else ", ")
+             (int_of_nat i) (json_string w)) revealed;
+       Printf.fprintf oc "],\n  \"proof\": [";
+       List.iteri (fun k h ->
+           Printf.fprintf oc "%s\"%s\"" (if k = 0 then "" else ", ") (hex h)) p;
+       Printf.fprintf oc "]\n}\n";
+       close_out oc;
+       Printf.printf "wrote %s\n" path);
     0
 
 let () =
-  let argv = Array.to_list Sys.argv in
-  let flag name = let rec go = function a :: b :: _ when a = name -> Some b | _ :: t -> go t | [] -> None in go argv in
-  match argv with
-  | _ :: "commit" :: _ ->
-    exit (cmd_commit (Option.get (flag "--subject")) (Option.get (flag "--description")))
-  | _ :: "show" :: _ ->
-    exit (cmd_show (Option.get (flag "--subject")) (Option.get (flag "--description")))
+  match Array.to_list Sys.argv with
+  | _ :: "commit" :: _ -> exit (cmd_commit (need "--subject") (need "--description"))
+  | _ :: "show" :: _ -> exit (cmd_show (need "--subject") (need "--description"))
   | _ :: "disclose" :: _ ->
-    exit (cmd_disclose (Option.get (flag "--subject")) (Option.get (flag "--description"))
-            (Option.get (flag "--reveal")))
+    exit (cmd_disclose (need "--subject") (need "--description") (need "--reveal"))
   | _ ->
     prerr_endline
       "usage: notary commit   --subject T --description FILE\n\
       \       notary show     --subject T --description FILE\n\
-      \       notary disclose --subject T --description FILE --reveal 0,4-19";
+      \       notary disclose --subject T --description FILE --reveal 0,4-19 [--out FILE]";
     exit 1
