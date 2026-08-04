@@ -40,6 +40,14 @@ Round 1, card 2: the hash is a module parameter carrying an injectivity
 hypothesis, so the statement reads *for any hash injective on the encodings we
 use*. The assumption is in the theorem rather than in a footnote.
 
+**Writing it turned one hypothesis into three** (cycle 2, `theories/Merkle.v`).
+Leaf hashes must be injective in both the index and the word; node hashes must
+be injective in both children; and **no leaf hash may ever equal a node hash**,
+which is the domain separation that stops a crafted word from standing in for a
+subtree. The card said "an injectivity hypothesis", singular. The code says
+three, and this line exists so the count is on the record rather than discovered
+by a reader of the source.
+
 **And it is an idealisation.** Injectivity is strictly stronger than the
 computational collision resistance SHA-256 actually offers. The trusted-base
 report says so in those words; a reader who is told "proven" and discovers this
@@ -48,7 +56,9 @@ later has been misled by omission.
 ## The trusted base, so far
 
 1. **SHA-256**, by decision. Not proven, supplied by OCaml.
-2. **The injectivity idealisation** above.
+2. **The injectivity idealisation** above, in its three parts. Real hashes offer
+   computational collision resistance, not injectivity; the distance between the
+   two is where a cryptographer would start reading.
 3. **Rocq's extractor** (round 1, card 3), which is what carries the proof to
    the running program.
 4. **The leaf splitting**, outside the proof by card 4.
