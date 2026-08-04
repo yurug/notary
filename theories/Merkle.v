@@ -385,6 +385,53 @@ Lemma pair_up_inj :
   forall l l', NoDup l -> NoDup l' -> pair_up l = pair_up l' -> l = l'.
 Proof. intros l l'. apply (pair_up_inj_aux (length l) l l'). lia. Qed.
 
+(** Only the equality of the two lengths is needed, never their value, so the
+    lemma says that and the proof never meets a division. *)
+
+Lemma pair_up_length_eq_aux :
+  forall n l l', length l <= n -> length l = length l' ->
+    length (pair_up l) = length (pair_up l').
+Proof.
+  induction n as [| n IH]; intros l l' Hn Heq.
+  - destruct l as [| x l0]; destruct l' as [| x' l0']; simpl in *; lia || reflexivity.
+  - destruct l as [| x [| y r]]; destruct l' as [| x' [| y' r']];
+      simpl in *; try lia; try reflexivity.
+    f_equal. apply (IH r r'); lia.
+Qed.
+
+Lemma pair_up_length_eq :
+  forall l l', length l = length l' -> length (pair_up l) = length (pair_up l').
+Proof. intros l l'. apply (pair_up_length_eq_aux (length l) l l'). lia. Qed.
+
+(** Injectivity of the fold, at equal length. This is the whole of
+    [fold_determines_leaves] except the question of whether two sequences of
+    *different* lengths can share a root, which is a question about the
+    construction rather than about this proof, and which round 2 decides. *)
+
+Lemma fold_levels_inj :
+  forall n l l' r, NoDup l -> NoDup l' -> length l = length l' ->
+    fold_levels n l = Some r -> fold_levels n l' = Some r -> l = l'.
+Proof.
+  induction n as [| n IH]; intros l l' r Hl Hl' Hlen H H'.
+  - destruct l as [| x [| y t]]; destruct l' as [| x' [| y' t']];
+      simpl in *; try discriminate; try lia.
+    injection H as Hx. injection H' as Hx'. subst. reflexivity.
+  - destruct l as [| x [| y t]]; destruct l' as [| x' [| y' t']];
+      simpl in *; try discriminate; try lia.
+    + injection H as Hx. injection H' as Hx'. subst. reflexivity.
+    + apply pair_up_inj; [exact Hl | exact Hl' |].
+      apply (IH (hnode x y :: pair_up t) (hnode x' y' :: pair_up t') r).
+      * change (hnode x y :: pair_up t) with (pair_up (x :: y :: t)).
+        apply pair_up_nodup. exact Hl.
+      * change (hnode x' y' :: pair_up t') with (pair_up (x' :: y' :: t')).
+        apply pair_up_nodup. exact Hl'.
+      * change (hnode x y :: pair_up t) with (pair_up (x :: y :: t)).
+        change (hnode x' y' :: pair_up t') with (pair_up (x' :: y' :: t')).
+        apply pair_up_length_eq. simpl. lia.
+      * exact H.
+      * exact H'.
+Qed.
+
 Lemma fold_determines_leaves :
   forall ws p r,
     fold_levels (length ws) (leaves_of ws) = Some r ->
