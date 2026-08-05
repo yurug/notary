@@ -1,0 +1,6 @@
+ M kb/architecture.md
+?? .gitignore
+?? Makefile
+?? theories/
+ kb/architecture.md | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)

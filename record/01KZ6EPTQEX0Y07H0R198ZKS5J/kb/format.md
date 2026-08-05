@@ -38,27 +38,13 @@ three characters does.
 of hash from ever being read as another.
 
 ```
-salt(i)      = H( 0x03 ‖ secret ‖ uint32be(i) )
-leaf(i, w)   = H( 0x00 ‖ uint32be(i) ‖ salt(i) ‖ utf8(w) )
+leaf(i, w)   = H( 0x00 ‖ uint32be(i) ‖ utf8(w) )
 node(a, b)   = H( 0x01 ‖ a ‖ b )
 count(n, r)  = H( 0x02 ‖ uint32be(n) ‖ r )
 ```
 
-`secret` is 32 random bytes, one per finding, kept by whoever committed it and
-never published. **Without the salt this scheme hides nothing**: a disclosure
-carries one hash per leaf including the hidden ones, the index is public, and a
-dictionary recovers every hidden word in milliseconds. Measured 2026-08-04,
-sixteen of eighteen from a forty-word dictionary.
-
-A verifier never needs the secret. Salts for revealed words travel in the
-disclosure; salts for hidden words are what a recipient cannot compute.
-
 Digests are the 32 raw bytes, concatenated as bytes, not as hex, when they feed
 another hash.
-
-`uint32be` bounds every index and the leaf count to 2^32 - 1. An implementation
-must reject a finding with more leaves than that rather than wrap, and a
-verifier must reject a disclosure whose `leaf_count` or indices exceed it.
 
 ## The tree
 
@@ -90,15 +76,15 @@ JSON, one object:
 ```json
 {
   "leaf_count": 30,
-  "revealed": [[0, "session cookie issued …", "<salt hex>"], [1, "The", "<salt hex>"]],
+  "revealed": [[0, "session cookie issued …"], [1, "The"], [2, "session"]],
   "proof": ["<hex>", "<hex>", …]
 }
 ```
 
 - `leaf_count` is the total number of leaves in the finding, including the
   subject.
-- `revealed` is a list of `[index, word, salt]` triples, sorted by index, the
-  salt hex-encoded. Index 0 is always present.
+- `revealed` is a list of `[index, word]` pairs, sorted by index. Index 0 is
+  always present.
 - `proof` is the full list of leaf hashes of the finding, in order, hex-encoded.
   Every hidden word contributes its hash and nothing else.
 
@@ -107,8 +93,7 @@ JSON, one object:
 Given a disclosure and a published root, in hex:
 
 1. Check `length(proof) == leaf_count`.
-2. For each `[i, w, salt]` in `revealed`, check `proof[i] == leaf(i, w)` using
-   that salt.
+2. For each `[i, w]` in `revealed`, check `proof[i] == leaf(i, w)`.
 3. Fold `proof` as described above, and check
    `count(leaf_count, fold) == root`.
 

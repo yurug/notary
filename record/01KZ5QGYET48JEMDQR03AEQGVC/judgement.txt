@@ -1,0 +1,1 @@
+the obligation stated in cycle 2 is unsatisfiable and cycle 3 proved it in six lines: one biconditional over a given proof forces the verifier to ignore that proof; it is now soundness of the verifier plus completeness of the prover-verifier pair

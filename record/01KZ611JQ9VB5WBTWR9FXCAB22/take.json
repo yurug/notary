@@ -1,0 +1,5 @@
+{
+  "id": "01KZ611JQ9VB5WBTWR9FXCAB22",
+  "goal": "cycle 3e: bind the length into the root and close soundness with no axiom, budget four attempts",
+  "judgement": "both theorems closed under the global context, no axioms, seventeen proofs; the obligation that resisted was removed by binding the leaf count into the root rather than by proving harder, and pairing turned out to need no distinctness once lengths match"
+}

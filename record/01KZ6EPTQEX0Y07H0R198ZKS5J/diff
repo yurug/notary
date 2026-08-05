@@ -1,0 +1,11 @@
+ M .forebrief/decisions.jsonl
+ M .gitignore
+ M kb/architecture.md
+?? .backbrief/
+?? .forebrief/rounds/01KZ6PP9WWV72ZSAPDZ0HNNGWF.json
+?? .inbrief/
+?? chain/
+ .forebrief/decisions.jsonl | 3 +++
+ .gitignore                 | 1 +
+ kb/architecture.md         | 7 +++++++
+ 3 files changed, 11 insertions(+)

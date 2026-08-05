@@ -1,0 +1,5 @@
+{
+  "id": "01KZ6AGDVKC1PA5WVD3T2EQEEW",
+  "goal": "cycle 5: the shell, from a real SHA-256 to a working command line",
+  "judgement": "the tool runs end to end on a real SHA-256; the criterion that a moved word must not verify stopped being a test and became a theorem, and extraction's own List shadowing the standard library was the only real friction"
+}

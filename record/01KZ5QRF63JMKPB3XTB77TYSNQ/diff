@@ -1,0 +1,10 @@
+ M Makefile
+ M kb/architecture.md
+ M kb/plan.md
+ M theories/Merkle.v
+?? theories/Assumptions.v
+ Makefile           |   8 ++-
+ kb/architecture.md |  20 ++++++-
+ kb/plan.md         |  25 +++++---
+ theories/Merkle.v  | 167 +++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 4 files changed, 206 insertions(+), 14 deletions(-)

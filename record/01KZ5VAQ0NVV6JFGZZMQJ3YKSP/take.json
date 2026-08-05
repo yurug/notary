@@ -1,0 +1,5 @@
+{
+  "id": "01KZ5VAQ0NVV6JFGZZMQJ3YKSP",
+  "goal": "cycle 3d: prove fold injectivity at equal length, budget three attempts, then route the length question to a decision round",
+  "judgement": "fold injectivity holds at equal length, fourteen proofs closed; the budget was extended by one on the record because all three declared attempts died on tactic syntax rather than on the mathematics, and the residual length question is routed to a round instead of being patched"
+}

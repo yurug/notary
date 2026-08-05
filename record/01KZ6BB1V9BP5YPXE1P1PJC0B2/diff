@@ -1,0 +1,9 @@
+ M kb/INDEX.md
+ M kb/plan.md
+ M src/notary.ml
+?? kb/format.md
+?? verifier/
+ kb/INDEX.md   | 14 ++++++++++---
+ kb/plan.md    | 22 +++++++++++++++++++++
+ src/notary.ml | 63 +++++++++++++++++++++++++++++++++++++++++++++++++----------
+ 3 files changed, 86 insertions(+), 13 deletions(-)

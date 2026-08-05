@@ -1,0 +1,22 @@
+ M .backbrief/events/01KZ6CM7C6Z699MVZA0W58BCAF.jsonl
+ M .backbrief/model/map.json
+ M .backbrief/model/overlay.json
+ M .forebrief/decisions.jsonl
+ M kb/architecture.md
+ M kb/format.md
+ M src/boundary.ml
+ M src/dune
+ M src/notary.ml
+ M verifier/verify.py
+?? .forebrief/rounds/01KZ6ZW268W8VQX36NEJAJCCH8.json
+ .backbrief/events/01KZ6CM7C6Z699MVZA0W58BCAF.jsonl |   8 +
+ .backbrief/model/map.json                          |  40 ++++
+ .backbrief/model/overlay.json                      |  13 +-
+ .forebrief/decisions.jsonl                         |   3 +
+ kb/architecture.md                                 |  30 +++
+ kb/format.md                                       |  21 +-
+ src/boundary.ml                                    |  31 ++-
+ src/dune                                           |   2 +-
+ src/notary.ml                                      | 213 +++++++++++++--------
+ verifier/verify.py                                 |  13 +-
+ 10 files changed, 277 insertions(+), 97 deletions(-)

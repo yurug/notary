@@ -4,7 +4,5 @@ theories/*.vos
 theories/*.glob
 theories/.*.aux
 _build/
-_build/
-extracted/
 chain/node_modules/
 .lia.cache

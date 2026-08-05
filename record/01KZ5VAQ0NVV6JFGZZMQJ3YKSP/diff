@@ -1,0 +1,7 @@
+ M kb/plan.md
+ M theories/Merkle.v
+?? .forebrief/rounds/01KZ5VF9K863Y6NDXGFJB93Z3T.json
+?? .lia.cache
+ kb/plan.md        | 23 +++++++++++++++++------
+ theories/Merkle.v | 47 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+), 6 deletions(-)

@@ -1,0 +1,1 @@
+the obligation type-checks instead of sitting in a comment, and writing it turned one hypothesis into three: leaf injectivity, node injectivity, and the disjointness that stops a word standing in for a subtree

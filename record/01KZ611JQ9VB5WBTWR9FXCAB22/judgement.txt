@@ -1,0 +1,1 @@
+both theorems closed under the global context, no axioms, seventeen proofs; the obligation that resisted was removed by binding the leaf count into the root rather than by proving harder, and pairing turned out to need no distinctness once lengths match

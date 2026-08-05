@@ -1,0 +1,1 @@
+a cycle that shipped no feature and found three defects: no written format, nothing to hand over, and a crash on a missing flag; the independent verifier then agreed with the tool on a real disclosure

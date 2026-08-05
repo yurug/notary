@@ -1,0 +1,5 @@
+{
+  "id": "01KZ65G2423BTWNB97BTSXB78Y",
+  "goal": "cycle 4: extract the core to OCaml and find out what the boundary really costs",
+  "judgement": "extraction makes the boundary a type signature: OCaml cannot call verify without supplying the five things the theorem quantifies over; the real cost is six trusted lines converting int to unary nat, written out rather than hidden in an extraction directive"
+}

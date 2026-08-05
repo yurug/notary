@@ -1,0 +1,14 @@
+ M .forebrief/decisions.jsonl
+ M .gitignore
+ M kb/architecture.md
+ M kb/plan.md
+ M src/boundary.ml
+?? dune-project
+?? src/dune
+?? src/notary.ml
+ .forebrief/decisions.jsonl |  1 +
+ .gitignore                 |  2 ++
+ kb/architecture.md         |  7 +++++--
+ kb/plan.md                 | 16 ++++++++++++++++
+ src/boundary.ml            |  8 ++++----
+ 5 files changed, 28 insertions(+), 6 deletions(-)

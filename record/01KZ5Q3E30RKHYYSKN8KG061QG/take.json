@@ -1,0 +1,5 @@
+{
+  "id": "01KZ5Q3E30RKHYYSKN8KG061QG",
+  "goal": "cycle 2: state the theorem before proving it, and find out whether it is readable",
+  "judgement": "the obligation type-checks instead of sitting in a comment, and writing it turned one hypothesis into three: leaf injectivity, node injectivity, and the disjointness that stops a word standing in for a subtree"
+}

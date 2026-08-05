@@ -1,0 +1,5 @@
+{
+  "id": "01KZ5T6EV1M2YTRDE9GQYS8ERP",
+  "goal": "cycle 3c: discharge fold_determines_leaves, budget four attempts, then stop and change the goal",
+  "judgement": "goal not met: four attempts declared in advance, four spent, and the axiom stands. What they bought is four proven lemmas around it, including that distinctness is what makes a level determine the one below, which is false without it"
+}

@@ -1,0 +1,7 @@
+ M kb/architecture.md
+ M kb/plan.md
+ M theories/Merkle.v
+ kb/architecture.md |   6 ++--
+ kb/plan.md         |  31 ++++++++++++----
+ theories/Merkle.v  | 101 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 130 insertions(+), 8 deletions(-)

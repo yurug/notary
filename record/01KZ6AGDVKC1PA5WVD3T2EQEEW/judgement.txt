@@ -1,0 +1,1 @@
+the tool runs end to end on a real SHA-256; the criterion that a moved word must not verify stopped being a test and became a theorem, and extraction's own List shadowing the standard library was the only real friction

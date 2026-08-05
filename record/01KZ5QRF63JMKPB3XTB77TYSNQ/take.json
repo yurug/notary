@@ -1,0 +1,5 @@
+{
+  "id": "01KZ5QRF63JMKPB3XTB77TYSNQ",
+  "goal": "cycle 3b: discharge soundness and completeness on a concrete verifier and prover",
+  "judgement": "completeness is proven and closed under the global context; soundness is proven modulo one axiom that the kernel names for us, and the trusted base is now a make target rather than a document"
+}

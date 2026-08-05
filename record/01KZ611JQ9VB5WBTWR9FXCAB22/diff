@@ -1,0 +1,12 @@
+ M .forebrief/decisions.jsonl
+ M .lia.cache
+ M kb/architecture.md
+ M kb/plan.md
+ M theories/Merkle.v
+?? .forebrief/rounds/01KZ5VN1V64SFX15S6WXG3AHNR.json
+ .forebrief/decisions.jsonl |   1 +
+ .lia.cache                 | Bin 1051 -> 1598 bytes
+ kb/architecture.md         |  32 ++++++++------
+ kb/plan.md                 |  11 +++++
+ theories/Merkle.v          | 108 ++++++++++++++++++++++++++++++++++++++-------
+ 5 files changed, 124 insertions(+), 28 deletions(-)
