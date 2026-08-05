@@ -139,7 +139,10 @@ before the work and whose judgement was written after it, every decision is in
 onboarding and comprehension sessions are in [`.inbrief/`](.inbrief/) and
 [`.backbrief/`](.backbrief/).
 
-That record exists because this development is the subject of an essay, and an
-essay about how work went should be checkable rather than remembered.
+The point of keeping it is that a claim about how this tool came to be, or about
+why any of it is shaped the way it is, can be checked against the record instead
+of taken on trust. The tag `recorded-run-2026-08-04` marks the run as it stood
+on the day, before the commit messages were rewritten to describe the changes
+rather than the session.
 
 MIT licensed.
