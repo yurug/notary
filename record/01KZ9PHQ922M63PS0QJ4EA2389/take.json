@@ -1,0 +1,5 @@
+{
+  "id": "01KZ9PHQ922M63PS0QJ4EA2389",
+  "goal": "cycle 9c: ship the multiproof end to end: re-extract the core, rewire the OCaml shell to build and verify pruned trees, retire the v1 full-list disclosure on the wire, update format.md and the Python verifier, all tests green",
+  "judgement": "the multiproof ships end to end: shell builds a pruned tree (mirrors pair_forest, collapses fully-hidden subtrees bottom-up), the extracted mp_verify checks it, the wire format is the tagged tree, format.md and the sixty-line Python verifier reimplement it, v1 retired. Measured: 32-leaf finding with two revealed spans ships 12-14 nodes not 32; a forged reveal and a tampered hidden hash both rejected by the independent verifier. Building the tree is untrusted shell, so a bug there can only fail an honest disclosure, never pass a forged one."
+}

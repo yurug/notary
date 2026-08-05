@@ -1,0 +1,1 @@
+round 7 decided, three accepted defaults: the disclosure becomes a Merkle multiproof (revealed leaves plus maximal fully-hidden subtree hashes, single format, v1 shape retired), gap positions and lengths stay public and become a stated property of format.md, and soundness/completeness are reproven directly over the multiproof against the unchanged theorem statements

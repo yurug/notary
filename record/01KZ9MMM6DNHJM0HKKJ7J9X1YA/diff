@@ -1,0 +1,11 @@
+ M .forebrief/decisions.jsonl
+ M kb/architecture.md
+ M theories/Assumptions.v
+ M theories/Merkle.v
+?? .forebrief/rounds/01KZ9MCJQHTC76F3257VFQMZK7.json
+?? theories/Multiproof.v
+ .forebrief/decisions.jsonl |   3 +
+ kb/architecture.md         |  27 +++-
+ theories/Assumptions.v     |   2 +
+ theories/Merkle.v          | 336 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 364 insertions(+), 4 deletions(-)

@@ -1,0 +1,1 @@
+cycle 9c: ship the multiproof end to end: re-extract the core, rewire the OCaml shell to build and verify pruned trees, retire the v1 full-list disclosure on the wire, update format.md and the Python verifier, all tests green
