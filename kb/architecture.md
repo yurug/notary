@@ -4,7 +4,7 @@ type: concept
 summary: A small proven island and a large tested continent, with the trusted base named rather than implied.
 domain: architecture
 tags: [architecture, trust]
-last-updated: 2026-08-04
+last-updated: 2026-08-05
 related: [product, glossary, decisions-round-1]
 ---
 # Where the certified boundary falls
@@ -92,14 +92,33 @@ The proven core did not change by a line: it quantifies over an abstract word
 type, and a salted word is still a word. The architecture held; the specification
 had a hole.
 
+## The multiproof (round 7, cycle 9)
+
+The postponed construction is now built and proven. A disclosure is a **pruned
+tree**: a revealed word is a leaf the verifier recomputes, a maximal
+fully-hidden subtree collapses to a single digest, so a hidden run of any length
+costs one hash. The root construction did not change, `hcount (length ws) (fold
+…)`, so every root already published stays valid and the chain layer is
+untouched; what changed is the proof a disclosure carries and the verifier over
+it. `mp_verify_sound` and `mp_verify_complete` are proven from scratch against
+statements that did not change, and the kernel closes both under the global
+context with no axioms. Soundness needs no pruning hypothesis: because the real
+finding's tree is **leaf-tipped** (every tip a leaf hash, never a node hash),
+`hnode` injectivity alone forces a proof that folds to the real root to reveal
+only genuine words, whatever shape the prover chose. What still leaks is
+structure, not content: the leaf count is bound into the root and revealed
+positions carry their index, so the position and length of every gap is public
+by construction. That is stated here rather than discovered later.
+
 ## The trusted base, asked of the kernel
 
-`make assumptions` prints what the two theorems actually rest on. A hand-kept
+`make assumptions` prints what the theorems actually rest on. A hand-kept
 list drifts the moment a proof changes; this one cannot, because it is the
 kernel's answer.
 
-**Today it says both theorems are closed under the global context.** No axioms.
-Seventeen proofs, and nothing between the statements and the kernel.
+**Today it says all four theorems are closed under the global context.** No
+axioms.
+44 proofs, and nothing between the statements and the kernel.
 
 What the kernel cannot tell you, and what this list is for:
 

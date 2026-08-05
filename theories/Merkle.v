@@ -538,6 +538,342 @@ Proof.
     apply digest_eqb_true in Hc2. subst h. reflexivity.
 Qed.
 
+(** ** Cycle 9: the multiproof
+
+    Round 7's decision. A disclosure has carried one hash per leaf; here a
+    maximal fully-hidden subtree collapses to a single digest, so a hidden run
+    costs one hash however long it is. The root construction does not change:
+    [root_of] is still [hcount (length ws) (fold …)], so every published root
+    stays valid and the chain layer is untouched. What changes is the proof a
+    disclosure carries and the verifier over it, and the two theorems are
+    reproven from scratch against statements that do not change. *)
+
+(** The concrete Merkle tree of a finding, made explicit. [fold_levels] computes
+    its root without naming it; [tree] names it, [pair_forest] mirrors
+    [pair_up], and the two agree through [troot] by construction rather than by
+    an axiom. *)
+
+Inductive tree : Type := Tip : digest -> tree | Fork : tree -> tree -> tree.
+
+Fixpoint troot (t : tree) : digest :=
+  match t with Tip d => d | Fork a b => hnode (troot a) (troot b) end.
+
+Fixpoint pair_forest (f : list tree) : list tree :=
+  match f with
+  | [] => [] | [t] => [Fork t t]
+  | a :: b :: r => Fork a b :: pair_forest r
+  end.
+
+Fixpoint fold_forest (fuel : nat) (f : list tree) : option tree :=
+  match fuel, f with
+  | _, [] => None | _, [t] => Some t
+  | 0, _ => None | S k, _ => fold_forest k (pair_forest f)
+  end.
+
+Lemma map_troot_pair_forest :
+  forall f, map troot (pair_forest f) = pair_up (map troot f).
+Proof.
+  fix IH 1. intros f. destruct f as [| a [| b r]]; try reflexivity.
+  simpl. f_equal. apply IH.
+Qed.
+
+(** The bridge, both directions. Forest-fold then root equals level-fold; and
+    whenever the level-fold succeeds, the forest-fold does too, on any forest
+    whose tips carry those digests. *)
+Lemma fold_forest_root :
+  forall fuel f t, fold_forest fuel f = Some t ->
+    fold_levels fuel (map troot f) = Some (troot t).
+Proof.
+  induction fuel as [| fuel IH]; intros f t H.
+  - destruct f as [| a [| b r]]; simpl in *; try discriminate.
+    injection H as <-. reflexivity.
+  - destruct f as [| a [| b r]]; simpl in *.
+    + discriminate.
+    + injection H as <-. reflexivity.
+    + apply IH in H. simpl in H. rewrite map_troot_pair_forest in H. exact H.
+Qed.
+
+Lemma fold_forest_exists_gen :
+  forall fuel f r, fold_levels fuel (map troot f) = Some r ->
+    exists t, fold_forest fuel f = Some t /\ troot t = r.
+Proof.
+  induction fuel as [| fuel IH]; intros f r H.
+  - destruct f as [| a [| b rest]]; simpl in *; try discriminate.
+    injection H as <-. exists a. split; reflexivity.
+  - destruct f as [| a [| b rest]]; simpl in *.
+    + discriminate.
+    + injection H as <-. exists a. split; reflexivity.
+    + apply (IH (pair_forest (a :: b :: rest)) r).
+      rewrite map_troot_pair_forest. simpl. simpl in H. exact H.
+Qed.
+
+Lemma map_troot_map_Tip : forall L, map troot (map Tip L) = L.
+Proof. induction L as [| x r IH]; simpl; [reflexivity | rewrite IH; reflexivity]. Qed.
+
+Lemma fold_forest_exists :
+  forall fuel L r, fold_levels fuel L = Some r ->
+    exists t, fold_forest fuel (map Tip L) = Some t /\ troot t = r.
+Proof.
+  intros fuel L r H. apply fold_forest_exists_gen. rewrite map_troot_map_Tip. exact H.
+Qed.
+
+(** A pruned tree: what a disclosure now carries. A revealed leaf the verifier
+    recomputes, a hidden subtree stands as one digest, a branch pairs two. It
+    carries its own reveals, so no separate revealed-word list has to be
+    reconciled with it, and the verifier never compares words. *)
+
+Inductive ptree : Type :=
+  | Reveal : nat -> word -> ptree
+  | Hide   : digest -> ptree
+  | Branch : ptree -> ptree -> ptree.
+
+Fixpoint proot (t : ptree) : digest :=
+  match t with
+  | Reveal i w => hleaf i w | Hide d => d
+  | Branch a b => hnode (proot a) (proot b)
+  end.
+
+Fixpoint preveals (t : ptree) : list (nat * word) :=
+  match t with
+  | Reveal i w => [(i, w)] | Hide _ => []
+  | Branch a b => preveals a ++ preveals b
+  end.
+
+(** [prunes t T]: [t] is a pruning of the concrete tree [T]. Pruning keeps the
+    root, which is why a hidden disclosure still verifies. *)
+Inductive prunes : ptree -> tree -> Prop :=
+  | prunes_reveal : forall i w, prunes (Reveal i w) (Tip (hleaf i w))
+  | prunes_hide   : forall T, prunes (Hide (troot T)) T
+  | prunes_branch : forall a b A B,
+      prunes a A -> prunes b B -> prunes (Branch a b) (Fork A B).
+
+Lemma prunes_root : forall t T, prunes t T -> proot t = troot T.
+Proof.
+  intros t T H. induction H as [i w | T | a b A B Ha IHa Hb IHb]; simpl;
+    [ reflexivity | reflexivity | rewrite IHa, IHb; reflexivity ].
+Qed.
+
+(** Soundness rests on the real tree being leaf-tipped: every tip a leaf hash,
+    never a node hash. That is what stops a prover passing a [Tip] whose digest
+    is secretly a node, and with it root equality alone forces genuine reveals,
+    whatever shape the prover chose. *)
+
+Fixpoint tips (T : tree) : list digest :=
+  match T with Tip d => [d] | Fork A B => tips A ++ tips B end.
+
+Inductive leaf_tipped : tree -> Prop :=
+  | lt_tip  : forall i w, leaf_tipped (Tip (hleaf i w))
+  | lt_fork : forall A B, leaf_tipped A -> leaf_tipped B -> leaf_tipped (Fork A B).
+
+Lemma troot_leaf_is_tip :
+  forall i w T, leaf_tipped T -> hleaf i w = troot T -> tips T = [hleaf i w].
+Proof.
+  intros i w T Hlt H. destruct Hlt as [j v | A B HA HB]; simpl in *.
+  - apply hleaf_inj in H. destruct H as [-> ->]. reflexivity.
+  - exfalso. apply (hleaf_hnode_disjoint i w (troot A) (troot B) H).
+Qed.
+
+Lemma troot_node_is_fork :
+  forall x y T, leaf_tipped T -> hnode x y = troot T ->
+    exists A B, T = Fork A B /\ leaf_tipped A /\ leaf_tipped B
+                /\ troot A = x /\ troot B = y.
+Proof.
+  intros x y T Hlt H. destruct Hlt as [j v | A B HA HB]; simpl in *.
+  - exfalso. symmetry in H. apply (hleaf_hnode_disjoint j v x y H).
+  - apply hnode_inj in H. destruct H as [-> ->]. exists A, B. repeat split; assumption.
+Qed.
+
+Lemma sound_core :
+  forall t T, leaf_tipped T -> proot t = troot T ->
+    forall i w, In (i, w) (preveals t) -> In (hleaf i w) (tips T).
+Proof.
+  induction t as [i0 w0 | d | a IHa b IHb]; intros T Hlt Hr i w Hin; simpl in *.
+  - destruct Hin as [Heq | []]. injection Heq as -> ->.
+    rewrite (troot_leaf_is_tip i w T Hlt Hr). simpl. left. reflexivity.
+  - destruct Hin.
+  - destruct (troot_node_is_fork (proot a) (proot b) T Hlt Hr)
+      as [A [B [HT [HA [HB [HrA HrB]]]]]].
+    subst T. simpl. apply in_or_app. apply in_app_or in Hin.
+    destruct Hin as [Hia | Hib].
+    + left. apply (IHa A HA (eq_sym HrA) i w Hia).
+    + right. apply (IHb B HB (eq_sym HrB) i w Hib).
+Qed.
+
+(** The real finding's forest is leaf-tipped, and its folded tips are exactly
+    its leaves. *)
+
+Lemma leaves_from_leaf_tipped_forall :
+  forall ws i, Forall leaf_tipped (map Tip (leaves_from i ws)).
+Proof.
+  induction ws as [| w rest IH]; intros i; simpl.
+  - constructor.
+  - constructor; [apply lt_tip | apply IH].
+Qed.
+
+Lemma leaves_of_leaf_tipped_forall :
+  forall ws, Forall leaf_tipped (map Tip (leaves_of ws)).
+Proof. intros ws. apply leaves_from_leaf_tipped_forall. Qed.
+
+Lemma pair_forest_leaf_tipped :
+  forall f, Forall leaf_tipped f -> Forall leaf_tipped (pair_forest f).
+Proof.
+  fix IH 1. intros f Hf. destruct f as [| a [| b rest]].
+  - constructor.
+  - inversion Hf as [| ? ? Ha ?]; subst. simpl.
+    constructor; [apply lt_fork; assumption | constructor].
+  - inversion Hf as [| ? ? Ha Hf']; subst.
+    inversion Hf' as [| ? ? Hb Hrest]; subst. simpl.
+    constructor; [apply lt_fork; assumption | apply IH; assumption].
+Qed.
+
+Lemma fold_forest_leaf_tipped :
+  forall fuel f t, Forall leaf_tipped f -> fold_forest fuel f = Some t -> leaf_tipped t.
+Proof.
+  induction fuel as [| fuel IH]; intros f t Hf H.
+  - destruct f as [| a [| b rest]]; simpl in *; try discriminate.
+    injection H as <-. inversion Hf; assumption.
+  - destruct f as [| a [| b rest]]; simpl in *.
+    + discriminate.
+    + injection H as <-. inversion Hf; assumption.
+    + apply (IH (Fork a b :: pair_forest rest) t); [| exact H].
+      inversion Hf as [| ? ? Ha Hf']; subst. inversion Hf' as [| ? ? Hb Hrest]; subst.
+      constructor; [apply lt_fork; assumption | apply pair_forest_leaf_tipped; assumption].
+Qed.
+
+Fixpoint concat_tips (f : list tree) : list digest :=
+  match f with [] => [] | t :: rest => tips t ++ concat_tips rest end.
+
+Lemma tips_pair_forest_sub :
+  forall f d, In d (concat_tips (pair_forest f)) -> In d (concat_tips f).
+Proof.
+  fix IH 1. intros f d H. destruct f as [| a [| b rest]]; simpl in *.
+  - exact H.
+  - rewrite app_nil_r in H. rewrite app_nil_r. apply in_app_or in H.
+    destruct H; assumption.
+  - apply in_app_or in H. apply in_or_app. destruct H as [Hab | Hrest].
+    + apply in_app_or in Hab. destruct Hab as [Ha | Hb].
+      * left. exact Ha.
+      * right. apply in_or_app. left. exact Hb.
+    + apply IH in Hrest. right. apply in_or_app. right. exact Hrest.
+Qed.
+
+Lemma tips_fold_forest_sub :
+  forall fuel f t, fold_forest fuel f = Some t ->
+    forall d, In d (tips t) -> In d (concat_tips f).
+Proof.
+  induction fuel as [| fuel IH]; intros f t H d Hd.
+  - destruct f as [| a [| b rest]]; simpl in *; try discriminate.
+    injection H as <-. rewrite app_nil_r. exact Hd.
+  - destruct f as [| a [| b rest]]; simpl in *.
+    + discriminate.
+    + injection H as <-. rewrite app_nil_r. exact Hd.
+    + apply (tips_pair_forest_sub (a :: b :: rest) d).
+      apply (IH (pair_forest (a :: b :: rest)) t); [exact H | exact Hd].
+Qed.
+
+Lemma concat_tips_map_Tip : forall L d, In d (concat_tips (map Tip L)) -> In d L.
+Proof.
+  induction L as [| x rest IH]; intros d H; simpl in *.
+  - exact H.
+  - destruct H as [Heq | Hrest]; [left; congruence | right; apply IH; exact Hrest].
+Qed.
+
+(** Reading a revealed leaf's word back out of the finding. As in v1 soundness,
+    [hleaf_inj] is what makes a leaf digest name exactly one (position, word). *)
+Lemma leaves_from_in_inv :
+  forall ws i w j, In (hleaf i w) (leaves_from j ws) -> j <= i ->
+    nth_error ws (i - j) = Some w.
+Proof.
+  induction ws as [| w0 rest IH]; intros i w j Hin Hle; simpl in *.
+  - contradiction.
+  - destruct Hin as [Heq | Hlater].
+    + apply hleaf_inj in Heq. destruct Heq as [-> ->].
+      rewrite Nat.sub_diag. reflexivity.
+    + assert (Hlt : j < i \/ j = i) by lia. destruct Hlt as [Hlt | ->].
+      * specialize (IH i w (S j) Hlater ltac:(lia)).
+        replace (i - j) with (S (i - S j)) by lia. exact IH.
+      * (* j = i: leaf at index i appears later where all indices exceed i *)
+        exfalso. clear IH Hle.
+        assert (Hgen : forall rest' k, i < k -> In (hleaf i w) (leaves_from k rest') -> False).
+        { induction rest' as [| w' r' IHr]; intros k Hlt Hin'; simpl in *.
+          - exact Hin'.
+          - destruct Hin' as [He | Hl].
+            + apply hleaf_inj in He. destruct He as [Hik _]. lia.
+            + apply (IHr (S k)); [lia | exact Hl]. }
+        apply (Hgen rest (S i)); [lia | exact Hlater].
+Qed.
+
+Lemma leaves_of_in_inv :
+  forall ws i w, In (hleaf i w) (leaves_of ws) -> nth_error ws i = Some w.
+Proof.
+  intros ws i w H. unfold leaves_of in H.
+  pose proof (leaves_from_in_inv ws i w 0 H (Nat.le_0_l i)) as Hr.
+  rewrite Nat.sub_0_r in Hr. exact Hr.
+Qed.
+
+(** ** The multiproof verifier, and its two theorems
+
+    The disclosure is the pruned tree plus the claimed leaf count. Verifying is
+    one hash: fold the tree, bind the count, compare to the published root. *)
+
+Definition mp_verify (cnt : nat) (t : ptree) (r : digest) : bool :=
+  digest_eqb (hcount cnt (proot t)) r.
+
+Definition mp_projects (cnt : nat) (t : ptree) (ws : list word) : Prop :=
+  cnt = length ws /\
+  forall i w, In (i, w) (preveals t) -> nth_error ws i = Some w.
+
+(** Soundness: whatever the verifier accepts against a real root reveals only
+    genuine words, and its claimed count is the real one. No pruning hypothesis:
+    injectivity forces the shape. *)
+Theorem mp_verify_sound :
+  forall ws cnt t r,
+    root_of ws = Some r -> mp_verify cnt t r = true -> mp_projects cnt t ws.
+Proof.
+  intros ws cnt t r Hroot Hv. unfold mp_verify in Hv.
+  apply digest_eqb_true in Hv.
+  unfold root_of in Hroot.
+  destruct (fold_levels (length ws) (leaves_of ws)) as [rr |] eqn:Hfl;
+    [| discriminate].
+  injection Hroot as Hr. subst r.
+  destruct (fold_forest_exists (length ws) (leaves_of ws) rr Hfl)
+    as [FT [HFT HrFT]].
+  assert (Hlt : leaf_tipped FT)
+    by (apply (fold_forest_leaf_tipped (length ws) (map Tip (leaves_of ws)) FT);
+        [ apply leaves_of_leaf_tipped_forall | exact HFT ]).
+  (* hcount cnt (proot t) = hcount (length ws) rr *)
+  rewrite <- HrFT in Hv.
+  apply hcount_inj in Hv. destruct Hv as [Hcnt Hpr].
+  split; [exact Hcnt |].
+  intros i w Hin.
+  apply leaves_of_in_inv.
+  pose proof (sound_core t FT Hlt Hpr i w Hin) as Htip.
+  pose proof (tips_fold_forest_sub (length ws) (map Tip (leaves_of ws)) FT HFT
+                (hleaf i w) Htip) as Hcat.
+  apply concat_tips_map_Tip in Hcat. exact Hcat.
+Qed.
+
+(** Completeness, for prunings: any honest disclosure that prunes the real tree
+    is accepted. This is what lets the tool hide, and [prunes_root] is the whole
+    proof: pruning keeps the root, so the one hash the verifier computes lands
+    on the published value. *)
+Theorem mp_verify_complete :
+  forall ws FT t r,
+    fold_forest (length ws) (map Tip (leaves_of ws)) = Some FT ->
+    root_of ws = Some r -> prunes t FT ->
+    mp_verify (length ws) t r = true.
+Proof.
+  intros ws FT t r HFT Hroot Hpr. unfold mp_verify.
+  unfold root_of in Hroot.
+  pose proof (fold_forest_root (length ws) (map Tip (leaves_of ws)) FT HFT) as Hbridge.
+  rewrite map_troot_map_Tip in Hbridge.
+  destruct (fold_levels (length ws) (leaves_of ws)) as [rr |] eqn:Hfl;
+    [| discriminate].
+  injection Hroot as Hr. subst r. injection Hbridge as HrFT.
+  rewrite (prunes_root t FT Hpr). rewrite HrFT.
+  apply digest_eqb_true. reflexivity.
+Qed.
+
 End Merkle.
 
 (** ** What the obligation does not say
