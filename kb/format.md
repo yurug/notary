@@ -4,7 +4,7 @@ type: spec
 summary: Everything a stranger needs to recompute a root and check a disclosure, without our code.
 domain: spec
 tags: [format, interop]
-last-updated: 2026-08-04
+last-updated: 2026-08-05
 related: [architecture, glossary]
 ---
 # The wire format
