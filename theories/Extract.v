@@ -16,4 +16,4 @@ Extract Inductive list => "list" [ "[]" "(::)" ].
 Extract Inductive prod => "( * )" [ "(,)" ].
 Extract Inductive option => "option" [ "Some" "None" ].
 
-Separate Extraction root_of build verify.
+Separate Extraction root_of mp_verify proot preveals.

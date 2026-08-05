@@ -1,0 +1,177 @@
+{
+  "id": "01KZ9MCJQHTC76F3257VFQMZK7",
+  "posted_at": "2026-08-05T18:53:47.121Z",
+  "cards": [
+    {
+      "id": "01KZ9MCJQHVNYNMWSJSYGKM3C6",
+      "round_id": "01KZ9MCJQHTC76F3257VFQMZK7",
+      "posted_at": "2026-08-05T18:53:47.121Z",
+      "kind": "question",
+      "prompt": "What replaces the full leaf list in a disclosure?",
+      "context": "Round 5 decided salt now, subtrees later, and later is now. Today a disclosure carries one hash per leaf, hidden ones included; the salt is what protects them, and the size is linear in the finding. The root construction does not change in any option below: count(n, fold) stays what it is, so every already-published root remains exactly as valid, and the chain program is untouched. What changes is proof_data and verify, both inside the proven core, so the seventeen Rocq proofs are redone whichever option wins.",
+      "options": [
+        {
+          "key": "1",
+          "label": "A Merkle multiproof: revealed leaves plus the hashes of the maximal fully-hidden subtrees",
+          "consequences": [
+            {
+              "text": "Disclosure size drops from one hash per leaf to roughly logarithmic for contiguous gaps: a 500-word finding with two revealed runs ships kilobytes instead of 16 KB, and a hidden region contributes one hash however long it is.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "Defence in depth at the edges: a hidden run no longer exposes per-word hashes at all, so confidentiality stops resting on the salt alone for everything except gap boundaries.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Both formats, version-tagged: v1 full list stays verifiable, v2 multiproof added",
+          "consequences": [
+            {
+              "text": "Any v1 disclosure already handed to a reporter keeps verifying forever, at the cost of two proof_data shapes inside the proven core, both specified in format.md and both proven.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            },
+            {
+              "text": "The independent verifier and the format document grow two code paths, which doubles the surface a stranger has to reimplement to claim compatibility.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "3",
+          "label": "Multiproof only: v1 disclosures stop verifying",
+          "consequences": [
+            {
+              "text": "The smallest proven core and the shortest format document, but every v1 disclosure in the wild becomes uncheckable by the new tool, and this project has published at least one.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "01KZ9MCJQJQ9CAAT12KK3HWRN7",
+      "round_id": "01KZ9MCJQHTC76F3257VFQMZK7",
+      "posted_at": "2026-08-05T18:53:47.121Z",
+      "kind": "question",
+      "prompt": "What does a disclosure still reveal about the hidden parts?",
+      "context": "With salted leaves the hidden words themselves are protected. The structure is not: the root binds the leaf count, revealed words carry their positions, so the position and length of every gap is inferable by subtraction whatever the proof shape. The essay about this project already promises to state leakage plainly, so whatever is decided here gets written into format.md as a property, not buried.",
+      "options": [
+        {
+          "key": "1",
+          "label": "Positions and gap lengths stay public, stated as a property and shown to the discloser",
+          "consequences": [
+            {
+              "text": "The tool keeps rendering every gap at its true length before anything leaves the machine, which is the honesty surface the product has had since cycle 1, and format.md states the leakage as a design fact.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "reversible",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Blur lengths by padding findings into fixed-size buckets at commit time",
+          "consequences": [
+            {
+              "text": "Only helps findings committed after the change, complicates the format for every implementation, and the padding policy itself becomes a new place to get confidentiality wrong.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "01KZ9MCJQJW23J1BXPB8F5NEKY",
+      "round_id": "01KZ9MCJQHTC76F3257VFQMZK7",
+      "posted_at": "2026-08-05T18:53:47.121Z",
+      "kind": "question",
+      "prompt": "How do the Rocq proofs absorb the multiproof?",
+      "context": "verify and proof_data live inside the proven core, which quantifies over an abstract hash. The question is whether the new verifier is proven directly against the specification, or proven equivalent to the old one. The stop-rule discipline stays: each proof cycle declares its attempt budget before the first attempt runs.",
+      "options": [
+        {
+          "key": "1",
+          "label": "State verify over the multiproof directly; reprove soundness and completeness from scratch",
+          "consequences": [
+            {
+              "text": "The core ends up with one representation and no legacy structure; the seventeen proofs are redone honestly against the same two theorem statements, which do not change.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        },
+        {
+          "key": "2",
+          "label": "Prove the multiproof verifier equivalent to the v1 verifier on the expanded leaf list",
+          "consequences": [
+            {
+              "text": "Keeps the existing seventeen proofs as the trust anchor and adds an equivalence layer, at the cost of carrying the v1 structure inside the core forever, even if the wire format drops it.",
+              "grounding": {
+                "kind": "conjecture"
+              }
+            }
+          ],
+          "reversibility": {
+            "class": "costly",
+            "grounding": {
+              "kind": "conjecture"
+            }
+          }
+        }
+      ],
+      "default": "1"
+    }
+  ]
+}

@@ -38,26 +38,23 @@ def count(n: int, r: bytes) -> bytes:
     return hashlib.sha256(b"\x02" + struct.pack(">I", n) + r).digest()
 
 
-def fold(level: list[bytes]) -> bytes:
-    while len(level) > 1:
-        # An odd level duplicates its last node.
-        nxt = []
-        for i in range(0, len(level), 2):
-            left = level[i]
-            right = level[i + 1] if i + 1 < len(level) else left
-            nxt.append(node(left, right))
-        level = nxt
-    return level[0]
+def proot(t: dict) -> bytes:
+    """Fold a pruned tree to its digest, by the three rules of the format. A
+    revealed word is recomputed; a hidden subtree is taken as the one digest it
+    ships; a node hashes its two children in order."""
+    if "r" in t:
+        i, word, salt_hex = t["r"]
+        return leaf(i, word, bytes.fromhex(salt_hex))
+    if "h" in t:
+        return bytes.fromhex(t["h"])
+    if "n" in t:
+        a, b = t["n"]
+        return node(proot(a), proot(b))
+    raise ValueError(f"not a pruned-tree node: {t!r}")
 
 
 def verify(d: dict, root_hex: str) -> bool:
-    proof = [bytes.fromhex(h) for h in d["proof"]]
-    if len(proof) != d["leaf_count"]:
-        return False
-    for i, word, salt_hex in d["revealed"]:
-        if not (0 <= i < len(proof)) or proof[i] != leaf(i, word, bytes.fromhex(salt_hex)):
-            return False
-    return count(d["leaf_count"], fold(proof)).hex() == root_hex
+    return count(d["leaf_count"], proot(d["proof"])).hex() == root_hex
 
 
 if __name__ == "__main__":

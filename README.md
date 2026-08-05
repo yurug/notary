@@ -122,11 +122,13 @@ kb/          six files: product, architecture, format, glossary, plan, decisions
 
 ## Status
 
-The core is proven, the tool works, and a root it computed is on a testnet.
+The core is proven, the tool works, and a root it computed is on a testnet. A
+disclosure is a Merkle multiproof: a hidden run of any length collapses to one
+hash, and both `mp_verify_sound` and `mp_verify_complete` close under the
+global context with no axioms (`make assumptions`).
 
-Two things are decided and not built: redacting whole subtrees, which would
-shrink a disclosure by two orders of magnitude and add defence in depth at the
-edges, and a chain layer the tool can call rather than the user.
+One thing is decided and not built: a chain layer the tool can call rather than
+the user.
 
 One thing is deliberately absent, and will stay absent: any claim that a
 redaction is safe to publish.

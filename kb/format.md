@@ -85,43 +85,71 @@ hold.
 
 ## A disclosure
 
-JSON, one object:
+A disclosure is not the full leaf list. It is the tree with everything hidden
+pruned away: revealed words are kept as leaves, and any subtree all of whose
+leaves are hidden is replaced by its single digest. A hidden run of any length
+then costs one hash. This is the multiproof (round 7); the earlier one-hash-per-leaf
+format is retired, and roots already published are unaffected because the root
+construction above did not change.
+
+JSON, one object. The `proof` is a **pruned tree**, a node of one of three
+shapes:
 
 ```json
 {
   "leaf_count": 30,
-  "revealed": [[0, "session cookie issued …", "<salt hex>"], [1, "The", "<salt hex>"]],
-  "proof": ["<hex>", "<hex>", …]
+  "proof": {
+    "n": [
+      {"r": [0, "session cookie without Secure on staging", "<salt hex>"]},
+      {"n": [ {"h": "<hex>"}, {"r": [6, "clear", "<salt hex>"]} ]}
+    ]
+  }
 }
 ```
 
 - `leaf_count` is the total number of leaves in the finding, including the
   subject.
-- `revealed` is a list of `[index, word, salt]` triples, sorted by index, the
-  salt hex-encoded. Index 0 is always present.
-- `proof` is the full list of leaf hashes of the finding, in order, hex-encoded.
-  Every hidden word contributes its hash and nothing else.
+- `{"r": [index, word, salt]}` is a **revealed** leaf: the word at that index,
+  with its salt hex-encoded.
+- `{"h": "<hex>"}` is a **hidden** subtree, shipped as its digest and nothing
+  else. It stands for one leaf or a whole run of them.
+- `{"n": [left, right]}` is an internal **node** with two children.
 
 ## Verifying
 
-Given a disclosure and a published root, in hex:
+Recompute the tree's root digest from the pruned tree, then check the count
+binding. Fold a node `t` to a digest `proot(t)`:
 
-1. Check `length(proof) == leaf_count`.
-2. For each `[i, w, salt]` in `revealed`, check `proof[i] == leaf(i, w)` using
-   that salt.
-3. Fold `proof` as described above, and check
-   `count(leaf_count, fold) == root`.
+- `{"r": [i, w, salt]}`  →  `leaf(i, w)` with that salt;
+- `{"h": d}`             →  `d`;
+- `{"n": [a, b]}`        →  `node(proot(a), proot(b))`.
 
-If all three hold, the disclosure is **compatible** with the root: it is a
-redaction of the text that root was built from.
+Then the disclosure is **compatible** with a published root `r` when
+
+```
+count(leaf_count, proot(proof)) == r
+```
+
+No separate check of the revealed words is needed: a revealed leaf that did not
+recompute to the committed digest would change `proot` and miss the root. A
+verifier is sixty lines; [`verifier/verify.py`](../verifier/verify.py) is one.
 
 **What that does not establish**: that the text describes your finding, that the
 party who committed it understood it, or anything at all about the words they
 did not reveal.
 
+## What a disclosure still shows
+
+The salt hides the *words*; it does not hide the *shape*. The root binds the
+leaf count, and every revealed leaf carries its index, so a recipient can read
+off the total number of words and the position and length of every hidden gap.
+That leakage is structural and deliberate, stated here rather than discovered:
+if the gap structure itself is sensitive, a disclosure is the wrong tool.
+
 ## What the proof size means
 
-`proof` carries one hash per leaf, so a 500-word finding produces a 16 KB
-disclosure. A multiproof of shared siblings would be logarithmic instead, and it
-is not implemented: this shape is the one that could be proven, and the size is
-irrelevant for a document a person wrote.
+A contiguous hidden run collapses to one `{"h": …}`, so a 500-word finding with
+a few revealed spans ships kilobytes rather than the 16 KB the retired format
+needed. The worst case, revealed and hidden words alternating so nothing
+collapses, is back to one hash per leaf; for a document a person wrote, this
+never happens.

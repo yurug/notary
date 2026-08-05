@@ -45,9 +45,47 @@ let unhex s =
 let core_leaf i w = Sha256.leaf (int_of_nat i) w
 let core_count n r = Sha256.count (int_of_nat n) r
 let core_root ws = Extracted.Merkle.root_of core_leaf Sha256.node core_count ws
-let core_build d ws = Extracted.Merkle.build core_leaf d ws
-let core_verify d p r =
-  Extracted.Merkle.verify core_leaf Sha256.node core_count Sha256.equal d p r
+
+(* The proven verifier over a pruned tree. This is the trusted checking path:
+ * every argument is a thing the theorem quantifies over. *)
+let core_mp_verify cnt t r =
+  Extracted.Merkle.mp_verify core_leaf Sha256.node core_count Sha256.equal cnt t r
+
+(* Building the pruned tree is shell work, not covered by the proof: soundness
+ * holds for whatever tree the verifier is handed, so a bug here can only make an
+ * honest disclosure fail to verify, never make a forged one pass. The concrete
+ * tree mirrors the core's pair_forest, duplicating the last node on an odd
+ * level, so its root is the one root_of computed. *)
+type ctree = CL of int * Boundary.leaf_word * string | CN of ctree * ctree * string
+let cdigest = function CL (_, _, d) -> d | CN (_, _, d) -> d
+
+let build_ctree (ws : Boundary.leaf_word list) : ctree option =
+  match ws with
+  | [] -> None
+  | _ ->
+    let level0 = List.mapi (fun i w -> CL (i, w, Sha256.leaf i w)) ws in
+    let rec pair = function
+      | [] -> []
+      | [ t ] -> [ CN (t, t, Sha256.node (cdigest t) (cdigest t)) ]
+      | a :: b :: rest -> CN (a, b, Sha256.node (cdigest a) (cdigest b)) :: pair rest
+    in
+    let rec fold = function [] -> assert false | [ t ] -> t | l -> fold (pair l) in
+    Some (fold level0)
+
+(* Prune bottom-up: a subtree all of whose leaves are hidden collapses to its
+ * digest (one Hide), which is the whole point of a multiproof. *)
+let rec prune (revealed : int list) (t : ctree)
+  : (string, Boundary.leaf_word) Extracted.Merkle.ptree =
+  match t with
+  | CL (i, w, d) ->
+    if List.mem i revealed then Extracted.Merkle.Reveal (nat_of_int i, w)
+    else Extracted.Merkle.Hide d
+  | CN (a, b, d) ->
+    let pa = prune revealed a and pb = prune revealed b in
+    (match (pa, pb) with
+     | Extracted.Merkle.Hide _, Extracted.Merkle.Hide _ -> Extracted.Merkle.Hide d
+     | _ -> Extracted.Merkle.Branch (pa, pb))
+
 
 let read_file path =
   let ic = open_in_bin path in
@@ -155,6 +193,21 @@ let parse_ranges spec =
            List.init (int_of_string b - int_of_string a + 1) (fun k -> int_of_string a + k)
          | _ -> failwith ("cannot read \"" ^ part ^ "\" as an index or range"))
 
+(* The disclosure wire format: the pruned tree, tagged. A stranger folds it with
+ * three rules and checks the count binding. *)
+let rec json_ptree : (string, Boundary.leaf_word) Extracted.Merkle.ptree -> string =
+  function
+  | Extracted.Merkle.Reveal (i, w) ->
+    Printf.sprintf "{\"r\": [%d, %s, \"%s\"]}" (int_of_nat i) (json_string w.text) (hex w.salt)
+  | Extracted.Merkle.Hide d -> Printf.sprintf "{\"h\": \"%s\"}" (hex d)
+  | Extracted.Merkle.Branch (a, b) ->
+    Printf.sprintf "{\"n\": [%s, %s]}" (json_ptree a) (json_ptree b)
+
+let rec count_nodes : (string, Boundary.leaf_word) Extracted.Merkle.ptree -> int =
+  function
+  | Extracted.Merkle.Reveal _ | Extracted.Merkle.Hide _ -> 1
+  | Extracted.Merkle.Branch (a, b) -> count_nodes a + count_nodes b
+
 let cmd_disclose finding file spec =
   let subject, secret, _ = read_finding finding in
   let ws = words_of ~hash:sha ~secret subject (read_file file) in
@@ -164,7 +217,6 @@ let cmd_disclose finding file spec =
       (fun i -> match List.nth_opt ws i with Some w -> Some (nat_of_int i, w) | None -> None)
       idx
   in
-  let d = { Extracted.Merkle.leaf_count = nat_of_int (List.length ws); revealed } in
   let shown = List.map (fun (i, _) -> int_of_nat i) revealed in
   let buf = Buffer.create 256 in
   let run = ref 0 in
@@ -183,28 +235,22 @@ let cmd_disclose finding file spec =
   Printf.printf "\n\n%d of %d words revealed.\n" (List.length shown) (List.length ws);
   protection_note ();
   print_string "Judging whether the gaps can be guessed is yours; nothing here scores it.\n";
-  match core_root ws with
-  | None -> 1
-  | Some r ->
-    let p = core_build d ws in
-    Printf.printf "\nroot %s\nproof %d digests\nverifies: %b\n" (hex r) (List.length p)
-      (core_verify d p r);
+  match (core_root ws, build_ctree ws) with
+  | Some r, Some ct ->
+    let t = prune shown ct in
+    let cnt = nat_of_int (List.length ws) in
+    Printf.printf "\nroot %s\nproof %d nodes\nverifies: %b\n" (hex r) (count_nodes t)
+      (core_mp_verify cnt t r);
     (match flag "--out" with
      | None -> ()
      | Some path ->
        let oc = open_out path in
-       Printf.fprintf oc "{\n  \"leaf_count\": %d,\n  \"revealed\": [" (List.length ws);
-       List.iteri
-         (fun k (i, w) ->
-           Printf.fprintf oc "%s[%d, %s, \"%s\"]" (if k = 0 then "" else ", ") (int_of_nat i)
-             (json_string w.text) (hex w.salt))
-         revealed;
-       Printf.fprintf oc "],\n  \"proof\": [";
-       List.iteri (fun k h -> Printf.fprintf oc "%s\"%s\"" (if k = 0 then "" else ", ") (hex h)) p;
-       Printf.fprintf oc "]\n}\n";
+       Printf.fprintf oc "{\n  \"leaf_count\": %d,\n  \"proof\": %s\n}\n"
+         (List.length ws) (json_ptree t);
        close_out oc;
        Printf.printf "wrote %s\n" path);
     0
+  | _ -> 1
 
 let () =
   match Array.to_list Sys.argv with
